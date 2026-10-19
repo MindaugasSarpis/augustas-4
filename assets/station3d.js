@@ -45,8 +45,8 @@ window.createStation = function (canvas) {
         base *= 0.92 + 0.08 * noise(vP.xy * 0.4) * fine;
         if (M == 0) {                                   // name beside the porthole
           float a = atan(vP.y, vP.z);
-          if (abs(a) < 0.7 && vP.x > 54.0 && vP.x < 126.0) {
-            vec4 tx = texture(stationTex, vec2((vP.x - 54.0) / 72.0, 0.5 + a / 1.4));
+          if (abs(a) < 0.85 && vP.x > 46.0 && vP.x < 128.0) {
+            vec4 tx = texture(stationTex, vec2((vP.x - 46.0) / 82.0, 0.5 + a / 1.7));
             base = mix(base, tx.rgb, tx.a * fine);
           }
         }
@@ -84,23 +84,23 @@ window.createStation = function (canvas) {
       } else if (M == 9) {                              // visiting ship: white hull with a blue band and its name
         base = vec3(0.9, 0.92, 0.95);
         float a = atan(vP.y, vP.z);                       // 0 at the front (+z)
-        float band = smoothstep(0.0, 0.6 + upp, abs(vP.x + 26.0) - 2.0);
+        float band = smoothstep(0.0, 0.6 + upp, abs(vP.x + 36.0) - 2.5);
         base = mix(vec3(0.15, 0.35, 0.8), base, band);
-        if (abs(a) < 0.75 && vP.x > -4.0 && vP.x < 34.0) {
-          vec4 tx = texture(nameTex, vec2((vP.x + 4.0) / 38.0, 0.5 + a / 1.5));
+        if (abs(a) < 0.8 && vP.x > -6.0 && vP.x < 44.0) {
+          vec4 tx = texture(nameTex, vec2((vP.x + 6.0) / 50.0, 0.5 + a / 1.6));
           base = mix(base, tx.rgb, tx.a * fine);
         }
         // round window near the nose with the pilot looking out
         if (vP.z > 0.0) {
-          vec2 wp = vec2(vP.x + 17.0, vP.y);
+          vec2 wp = vec2(vP.x + 22.0, vP.y);
           float d = length(wp);
-          if (d < 11.0) {
-            vec3 inside = faceOn > 0.5 ? texture(faceTex, wp / 17.0 + 0.5).rgb : vec3(0.08, 0.1, 0.14);
-            float glass = 0.18 * smoothstep(2.0, 9.0, length(wp - vec2(-3.0, -3.0)));
+          if (d < 14.0) {
+            vec3 inside = faceOn > 0.5 ? texture(faceTex, wp / 22.0 + 0.5).rgb : vec3(0.08, 0.1, 0.14);
+            float glass = 0.18 * smoothstep(2.0, 11.0, length(wp - vec2(-4.0, -4.0)));
             vec3 win = inside * 0.95 + vec3(glass);
             vec3 rim = mix(vec3(0.2, 0.22, 0.27), vec3(0.85, 0.88, 0.92), 0.5 + 0.5 * sin(atan(wp.y, wp.x) * 2.0 + 0.8));
-            base = mix(win, rim, smoothstep(8.5 - upp, 8.5 + upp, d));
-            o = vec4(base * (0.55 + 0.45 * diff) + vec3(1.0) * spec * 0.4 * smoothstep(8.5, 9.0, d), 1.0); return;
+            base = mix(win, rim, smoothstep(11.0 - upp, 11.0 + upp, d));
+            o = vec4(base * (0.55 + 0.45 * diff) + vec3(1.0) * spec * 0.4 * smoothstep(11.0, 11.6, d), 1.0); return;
           }
         }
         ks = 0.5;
@@ -208,12 +208,11 @@ window.createStation = function (canvas) {
 
   const stationCount = I.length;
   // ---------- visiting ship "E.M.I.L.I.S." (ship-local: axis along x, nose at -x) ----------
-  capsule(-30, 30, 19, 9, 36, 8);
-  capsule(-52, -38, 7, 7, 16, 4);                    // docking probe
-  annulus(-30, 0, 0, 0, 0, 7);                      // (no-op keeps indices simple)
-  for (const sy of [-1, 1]) panel(-14, 14, sy * 24, sy * 62, 0, 11);
-  box(-3, 3, -26, 26, -2, 2, 2);                     // wing mast
-  sphere(36, 0, 0, 6, 10);                           // thruster
+  capsule(-40, 40, 24, 9, 36, 8);
+  capsule(-66, -50, 8, 7, 16, 4);                    // docking probe
+  for (const sy of [-1, 1]) panel(-16, 16, sy * 30, sy * 76, 0, 11);
+  box(-3, 3, -32, 32, -2, 2, 2);                     // wing mast
+  sphere(47, 0, 0, 7, 10);                           // thruster
 
   const shipStart = stationCount, shipCount = I.length - stationCount;
 
@@ -237,8 +236,8 @@ window.createStation = function (canvas) {
     if (document.fonts && document.fonts.load) document.fonts.load(`800 ${size}px 'Baloo 2'`).then(draw).catch(() => {});
     return tex;
   }
-  nameTexture(3, "E.M.I.L. 0", 72);
-  nameTexture(4, "A.U.G.U. 4", 78);
+  nameTexture(3, "E.M.I.L. 0", 92);
+  nameTexture(4, "A.U.G.U. 4", 96);
   // the pilot
   let faceOn = 0;
   {
@@ -293,8 +292,8 @@ window.createStation = function (canvas) {
       gl.drawElements(gl.TRIANGLES, stationCount, gl.UNSIGNED_INT, 0);
       if (dock > 0) {
         const e = ease(dock);
-        gl.uniform3f(uOff, 320 + (460 - 320) * (1 - e), -180 * (1 - e), 120 * (1 - e));
-        gl.uniformMatrix3fv(uR2, false, yaw(-0.5 * (1 - e)));
+        gl.uniform3f(uOff, 334 + (470 - 334) * (1 - e), -165 * (1 - e), 110 * (1 - e));
+        gl.uniformMatrix3fv(uR2, false, yaw(-0.45 * (1 - e)));
         gl.uniform1f(uThrust, dock < 0.97 ? 0.6 + 0.4 * Math.sin(dock * 60) : 0);
         gl.uniform1f(uFace, faceOn);
         gl.drawElements(gl.TRIANGLES, shipCount, gl.UNSIGNED_INT, shipStart * 4);

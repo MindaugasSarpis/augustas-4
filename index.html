@@ -48,8 +48,11 @@
     user-select: none; -webkit-user-drag: none;
     backface-visibility: hidden;
   }
-  img.layer { display: block; }
-  #orbit { overflow: visible; }
+  img.layer, canvas.layer { display: block; }
+  #earthgl { display: none; }
+  #earthgl.on { display: block; }
+  #earthgl.on + #earth { display: none; }
+  .orbit { overflow: visible; }
   #visor { opacity: 0; }
   #glow { width: 160px; height: 160px; border-radius: 50%;
     background: radial-gradient(circle, rgba(217,255,181,.9) 0%, rgba(141,255,94,.45) 35%, rgba(125,255,106,0) 70%); }
@@ -102,7 +105,6 @@
     box-shadow: 0 6px 0 #c99a00, 0 12px 30px rgba(255,210,63,.3); cursor: pointer;
   }
   #play:active { transform: translateY(3px); box-shadow: 0 3px 0 #c99a00; }
-  #start small { color: var(--muted); font-size: 14px; }
 
   /* invitation card */
   #card {
@@ -151,9 +153,13 @@
 
 <div id="stage" aria-hidden="true">
   <img class="layer" id="stars"   src="assets/stars.webp"   width="2000" height="2000" alt="">
+  <svg class="layer orbit" id="orbitBack" width="1000" height="1000" viewBox="-500 -500 1000 1000">
+    <path d="M-430 0A430 120 0 0 0 430 0" transform="rotate(-15)" fill="none" stroke="#fff" stroke-opacity=".16" stroke-width="2" stroke-dasharray="8 10"/>
+  </svg>
+  <canvas class="layer" id="earthgl" width="1200" height="1200"></canvas>
   <img class="layer" id="earth"   src="assets/earth.webp"   width="1400" height="1400" alt="">
-  <svg class="layer" id="orbit" width="1000" height="1000" viewBox="-500 -500 1000 1000">
-    <ellipse rx="430" ry="120" transform="rotate(-15)" fill="none" stroke="#fff" stroke-opacity=".28" stroke-width="2" stroke-dasharray="8 10"/>
+  <svg class="layer orbit" id="orbitFront" width="1000" height="1000" viewBox="-500 -500 1000 1000">
+    <path d="M-430 0A430 120 0 0 1 430 0" transform="rotate(-15)" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="2" stroke-dasharray="8 10"/>
   </svg>
   <img class="layer" id="lab"     src="assets/lab.webp"     width="2800" height="2800" alt="">
   <div class="layer" id="glow"><i></i></div>
@@ -195,60 +201,84 @@
 <script>
 (() => {
   // ---------- world geometry ----------
-  // World units: Earth radius = 300 at the origin. The station is a 0.25-scaled
-  // group at (180,-156); the lab (and suit/face) live inside it at a further 1/14.
-  const ST = { ox: 180, oy: -156, s: 0.25 };
-  const LB = { ox: 180, oy: -156, s: 0.25 / 14 };
+  // World units: Earth radius = 300 at the origin. The station is a 0.25-scaled group
+  // riding the orbit ellipse (rx 430, ry 120, tilted -15°); the lab, suit and face live
+  // inside it at a further 1/14. The station's position/scale change as it orbits.
+  const ORB = { rx: 430, ry: 120, cos: Math.cos(-15 * Math.PI / 180), sin: Math.sin(-15 * Math.PI / 180) };
+  const THETA0 = -Math.PI / 3;                 // where the station sits during the story
+  const orbitPoint = th => ({
+    x: ORB.rx * Math.cos(th) * ORB.cos - ORB.ry * Math.sin(th) * ORB.sin,
+    y: ORB.rx * Math.cos(th) * ORB.sin + ORB.ry * Math.sin(th) * ORB.cos,
+  });
+  const stationScale = th => 0.25 * (0.9 - 0.12 * Math.sin(th));   // a touch of perspective
+  const ST = { ox: 0, oy: 0, s: 0.25, theta: THETA0 };
+  let stFront = null;
+  function placeStation(th) {
+    const p = orbitPoint(th);
+    ST.theta = th; ST.ox = p.x; ST.oy = p.y; ST.s = stationScale(th);
+    const front = Math.sin(th) <= 0;
+    if (front !== stFront) { stFront = front; for (const L of layers) if (L.grp) L.node.style.zIndex = front ? 5 : 2; }
+  }
+  const EARTH_R = 1200 / 700;   // canvas px per world unit
   // Each layer: image placed so that its local (lx0, ly0) is the top-left, R px per local unit.
   const layers = [
-    { el: "stars",   ox: 0, oy: 0, s: 1,     lx0: -2000, ly0: -2000, R: 0.5 },
-    { el: "earth",   ox: 0, oy: 0, s: 1,     lx0: -350,  ly0: -350,  R: 2 },
-    { el: "orbit",   ox: 0, oy: 0, s: 1,     lx0: -500,  ly0: -500,  R: 1 },
-    { el: "lab",     ...LB,                  lx0: -560,  ly0: -560,  R: 2.5 },
-    { el: "glow",    ...LB,                  lx0: 80,    ly0: -230,  R: 1 },
-    { el: "kid",     ...LB,                  lx0: -140,  ly0: -240,  R: 4 },
-    { el: "face",    ...LB,                  lx0: -75,   ly0: -185,  R: 6 },
-    { el: "visor",   ...LB,                  lx0: -75,   ly0: -185,  R: 6 },
-    { el: "station", ...ST,                  lx0: -400,  ly0: -140,  R: 3 },
-    { el: "beacon",  ...ST,                  lx0: -9,    ly0: -125,  R: 1 },
+    { el: "stars",      grp: null, lx0: -2000, ly0: -2000, R: 0.5, z: 0 },
+    { el: "orbitBack",  grp: null, lx0: -500,  ly0: -500,  R: 1,   z: 1 },
+    { el: "earthgl",    grp: null, lx0: -350,  ly0: -350,  R: EARTH_R, z: 3 },
+    { el: "earth",      grp: null, lx0: -350,  ly0: -350,  R: 2,   z: 3 },
+    { el: "orbitFront", grp: null, lx0: -500,  ly0: -500,  R: 1,   z: 4 },
+    { el: "lab",        grp: "LB", lx0: -560,  ly0: -560,  R: 2.5 },
+    { el: "glow",       grp: "LB", lx0: 80,    ly0: -230,  R: 1 },
+    { el: "kid",        grp: "LB", lx0: -140,  ly0: -240,  R: 4 },
+    { el: "face",       grp: "LB", lx0: -75,   ly0: -185,  R: 6 },
+    { el: "visor",      grp: "LB", lx0: -75,   ly0: -185,  R: 6 },
+    { el: "station",    grp: "ST", lx0: -400,  ly0: -140,  R: 3 },
+    { el: "beacon",     grp: "ST", lx0: -9,    ly0: -125,  R: 1 },
   ];
-  for (const L of layers) L.node = document.getElementById(L.el);
+  for (const L of layers) { L.node = document.getElementById(L.el); if (L.z !== undefined) L.node.style.zIndex = L.z; }
+  const groupOf = L => L.grp === "ST" ? ST : L.grp === "LB" ? { ox: ST.ox, oy: ST.oy, s: ST.s / 14 } : { ox: 0, oy: 0, s: 1 };
+  placeStation(THETA0);
 
-  // Frames (world coords) the camera fits to.
-  const w = (g, x, y, ww, hh) => ({ x: g.ox + g.s * x, y: g.oy + g.s * y, w: g.s * ww, h: g.s * hh });
-  const F = {
-    visor: w(LB, -62, -166, 124, 112),
-    lab: w(LB, -200, -215, 400, 420),
-    station: w(ST, -400, -130, 800, 260),
-    earth: { x: -450, y: -320, w: 900, h: 640 },
-  };
-
-  // A view = top-left world point + k world units per CSS pixel.
+  // Frames (world coords) the camera fits to; computed from the station's story position.
   let W, H, views;
   const fit = (b, pad) => { const k = Math.max(b.w / W, b.h / H) * pad; return { x: b.x + b.w / 2 - W * k / 2, y: b.y + b.h / 2 - H * k / 2, k }; };
-  function faceView() {
-    // largest W:H rectangle inscribed in the visor ellipse, so the helmet is off-screen at first
-    const rx = F.visor.w / 2, ry = F.visor.h / 2, cx = F.visor.x + rx, cy = F.visor.y + ry;
-    const a = H / W;  // height per width
-    const ww = 1 / Math.sqrt(1 / (4 * rx * rx) + (a * a) / (4 * ry * ry));
-    const k = ww / W * 1.02;
-    return { x: cx - W * k / 2, y: cy - H * k / 2, k };
-  }
-  function finalView() {
-    const b = F.earth, cx = b.x + b.w / 2, cy = b.y + b.h / 2;
-    if (W >= H) { const k = Math.max(b.w / (W * .55), b.h / (H * .9)); return { x: cx - W * .3 * k, y: cy - H * .5 * k, k }; }
-    const k = Math.max(b.w / W, b.h / (H * .5)) * 1.02;
-    return { x: cx - W * .5 * k, y: cy - H * .27 * k, k };
-  }
   function measure() {
     W = innerWidth; H = innerHeight;
-    views = { face: faceView(), helmet: fit(F.visor, 1.35), lab: fit(F.lab, 1.0), station: fit(F.station, 1.15), end: finalView() };
+    const p = orbitPoint(THETA0), s = stationScale(THETA0), ls = s / 14;
+    const w = (sc, x, y, ww, hh) => ({ x: p.x + sc * x, y: p.y + sc * y, w: sc * ww, h: sc * hh });
+    const F = {
+      visor: w(ls, -62, -166, 124, 112),
+      lab: w(ls, -200, -215, 400, 420),
+      station: w(s, -400, -130, 800, 260),
+      earth: { x: -450, y: -320, w: 900, h: 640 },
+    };
+    // opening: the largest W:H rectangle inscribed in the visor ellipse (helmet off-screen)
+    const rx = F.visor.w / 2, ry = F.visor.h / 2, vcx = F.visor.x + rx, vcy = F.visor.y + ry;
+    const a = H / W, ww = 1 / Math.sqrt(1 / (4 * rx * rx) + (a * a) / (4 * ry * ry)), fk = ww / W * 1.02;
+    // hero shot: station in the lower middle, Earth's limb across the upper part, space above
+    const hk = Math.max(320 / W, 300 / H);
+    // final: Earth in the upper half (portrait) or on the left (landscape)
+    const b = F.earth, cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+    const end = W >= H
+      ? (k => ({ x: cx - W * .3 * k, y: cy - H * .5 * k, k }))(Math.max(b.w / (W * .55), b.h / (H * .9)))
+      : (k => ({ x: cx - W * .5 * k, y: cy - H * .27 * k, k }))(Math.max(b.w / W, b.h / (H * .5)) * 1.02);
+    views = {
+      face: { x: vcx - W * fk / 2, y: vcy - H * fk / 2, k: fk },
+      helmet: fit(F.visor, 1.35),
+      lab: fit(F.lab, 1.0),
+      station: fit(F.station, 1.15),
+      hero: { x: p.x - W * hk / 2, y: p.y - H * hk * 0.6, k: hk },
+      end,
+    };
   }
+  let cur = null;
   function render(v) {
+    cur = v;
     for (const L of layers) {
-      const tx = (L.ox + L.s * L.lx0 - v.x) / v.k;
-      const ty = (L.oy + L.s * L.ly0 - v.y) / v.k;
-      const sc = L.s / (v.k * L.R);
+      const g = groupOf(L);
+      const tx = (g.ox + g.s * L.lx0 - v.x) / v.k;
+      const ty = (g.oy + g.s * L.ly0 - v.y) / v.k;
+      const sc = g.s / (v.k * L.R);
       L.node.style.transform = `translate3d(${tx.toFixed(3)}px,${ty.toFixed(3)}px,0) scale(${sc.toPrecision(6)})`;
     }
   }
@@ -262,6 +292,101 @@
   }
   const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
+  // ---------- live Earth (WebGL2; falls back to the baked image) ----------
+  const earth = (() => {
+    const cv = document.getElementById("earthgl");
+    const gl = cv.getContext("webgl2", { alpha: true, premultipliedAlpha: true, antialias: false });
+    if (!gl) return null;
+    const vs = `#version 300 es
+      in vec2 p; out vec2 v; void main(){ v = p; gl_Position = vec4(p, 0., 1.); }`;
+    const fs = `#version 300 es
+      precision highp float;
+      in vec2 v; out vec4 o;
+      uniform sampler2D day, clouds; uniform float spin, drift;
+      const float PI = 3.14159265;
+      const float LAT0 = 0.733, LON0 = 0.384, TILT = -0.21;   // 42°N view, 22°E, axial tilt
+      void main(){
+        vec2 q = v * (350.0 / 300.0);
+        q = vec2(q.x * cos(TILT) - q.y * sin(TILT), q.x * sin(TILT) + q.y * cos(TILT));
+        float rho = length(q);
+        vec3 L = normalize(vec3(-0.5, 0.62, 0.6));
+        vec3 atmo = vec3(0.5, 0.72, 1.0);
+        float edge = fwidth(rho) * 1.2;
+        if (rho > 1.0 + edge) {
+          vec2 ld = q / rho;
+          float lit = clamp(dot(vec3(ld, 0.0), L) * 0.7 + 0.5, 0.05, 1.0);
+          float a = exp(-(rho - 1.0) / 0.035) * 0.75 * lit;
+          o = vec4(atmo * a, a); return;
+        }
+        float r = min(rho, 1.0);
+        float Z = sqrt(max(1.0 - r * r, 0.0));
+        vec3 n = vec3(q, Z);
+        // view -> planet coordinates: undo the viewer's latitude, then spin about the pole
+        float cl = cos(LAT0), sl = sin(LAT0);
+        vec3 pp = vec3(n.x, n.y * cl - n.z * sl, n.y * sl + n.z * cl);
+        float lat = asin(clamp(pp.y, -1.0, 1.0));
+        float lon = atan(pp.x, pp.z) + LON0 + spin;
+        float u = lon / (2.0 * PI) + 0.5;
+        float vv = 0.5 - lat / PI;
+        vec2 uv1 = vec2(fract(u), vv), uv2 = vec2(fract(u + 0.5), vv);
+        vec2 dx = dFdx(uv1), dy = dFdy(uv1), dx2 = dFdx(uv2), dy2 = dFdy(uv2);
+        if (dot(dx, dx) + dot(dy, dy) > dot(dx2, dx2) + dot(dy2, dy2)) { dx = dx2; dy = dy2; }
+        vec3 tex = textureGrad(day, uv1, dx, dy).rgb;
+        float cu = fract(u + drift);
+        float c = textureGrad(clouds, vec2(cu, vv), dx, dy).r;
+        float ca = pow(clamp(c * 1.15, 0.0, 1.0), 1.3);
+        float cs = textureGrad(clouds, vec2(cu + 0.004, vv + 0.006), dx, dy).r * 0.35;
+        vec3 surf = tex * (1.0 - cs);
+        surf = mix(surf, vec3(0.97, 0.98, 1.0), ca);
+        float diff = clamp(dot(n, L), 0.0, 1.0);
+        float shade = 0.06 + 0.94 * pow(diff, 0.85);
+        float ocean = (tex.b > tex.r + 0.08 && tex.b > tex.g + 0.03) ? 1.0 : 0.0;
+        vec3 Hh = normalize(L + vec3(0.0, 0.0, 1.0));
+        float spec = pow(clamp(dot(n, Hh), 0.0, 1.0), 70.0) * 0.55 * ocean * (1.0 - ca * 0.8);
+        vec3 col = surf * shade + spec;
+        float fres = pow(1.0 - Z, 2.2);
+        col += atmo * fres * (0.15 + 0.6 * diff);
+        float a = 1.0 - smoothstep(1.0 - edge, 1.0 + edge, rho);
+        o = vec4(clamp(col, 0.0, 1.0) * a, a);
+      }`;
+    const sh = (t, s) => { const h = gl.createShader(t); gl.shaderSource(h, s); gl.compileShader(h); if (!gl.getShaderParameter(h, gl.COMPILE_STATUS)) { console.warn(gl.getShaderInfoLog(h)); return null; } return h; };
+    const v1 = sh(gl.VERTEX_SHADER, vs), f1 = sh(gl.FRAGMENT_SHADER, fs);
+    if (!v1 || !f1) return null;
+    const pr = gl.createProgram(); gl.attachShader(pr, v1); gl.attachShader(pr, f1); gl.linkProgram(pr);
+    if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) return null;
+    gl.useProgram(pr);
+    const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(pr, "p"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    const uSpin = gl.getUniformLocation(pr, "spin"), uDrift = gl.getUniformLocation(pr, "drift");
+    gl.uniform1i(gl.getUniformLocation(pr, "day"), 0); gl.uniform1i(gl.getUniformLocation(pr, "clouds"), 1);
+    gl.disable(gl.DEPTH_TEST); gl.disable(gl.BLEND);
+    let ready = 0;
+    const load = (unit, src) => {
+      const im = new Image(); im.onload = () => {
+        const t = gl.createTexture(); gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, t);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, im);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        ready++;
+      }; im.src = src;
+    };
+    load(0, "assets/earth-day.jpg"); load(1, "assets/earth-clouds.jpg");
+    const t0 = performance.now();
+    return {
+      draw() {
+        if (ready < 2) return;
+        if (cur && 600 / cur.k > 4 * Math.max(W, H)) return;   // zoomed in past the station: Earth is hidden
+        const t = (performance.now() - t0) / 1000;
+        gl.uniform1f(uSpin, -t * 2 * Math.PI / 110); gl.uniform1f(uDrift, -t / 900);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        if (!cv.classList.contains("on")) cv.classList.add("on");
+      },
+    };
+  })();
+
   // ---------- sequence ----------
   const steps = [
     { hold: "face",                      dur: 1500, text: "Čia – Augustas.", sfx: "hum" },
@@ -269,12 +394,22 @@
     { from: "helmet",  to: "lab",        dur: 2200, text: "Jis dirba slaptoje laboratorijoje…", sfx: "whoosh" },
     { hold: "lab",                       dur: 1400, text: "Jis dirba slaptoje laboratorijoje…", sfx: "bleeps" },
     { from: "lab",     to: "station",    dur: 2600, text: "…kuri yra kosminėje stotyje…", sfx: "whoosh" },
-    { hold: "station",                   dur: 900,  text: "…kuri yra kosminėje stotyje…" },
-    { from: "station", to: "end",        dur: 2600, text: "…skriejančioje aplink Žemę!", sfx: "whoosh" },
+    { hold: "station",                   dur: 700,  text: "…kuri yra kosminėje stotyje…" },
+    { from: "station", to: "hero",       dur: 1800, text: "…skriejančioje aplink Žemę!", sfx: "whoosh" },
+    { hold: "hero",                      dur: 2400, text: "…skriejančioje aplink Žemę!", orbit: true },
+    { from: "hero",    to: "end",        dur: 2600, text: "…skriejančioje aplink Žemę!", orbit: true, sfx: "whoosh" },
   ];
   const caption = document.getElementById("caption");
   const visorEl = document.getElementById("visor");
   let start = 0, raf = 0, lastText = "", stepIdx = -1;
+  let orbitT0 = 0;                                  // when the station started moving
+  const ORBIT_PERIOD = 75, RAMP = 3;                // seconds per lap; speed ramps up over 3 s
+  function advanceOrbit(now) {
+    if (!orbitT0) orbitT0 = now;
+    const t = (now - orbitT0) / 1000, w = 2 * Math.PI / ORBIT_PERIOD;
+    const ang = t < RAMP ? w * t * t / (2 * RAMP) : w * (t - RAMP / 2);
+    placeStation(THETA0 + ang);
+  }
 
   function frame(now) {
     let t = now - start, i = 0;
@@ -282,6 +417,7 @@
     if (i >= steps.length) return finish();
     const s = steps[i];
     if (i !== stepIdx) { stepIdx = i; if (s.sfx) sfx[s.sfx](s.dur); }
+    if (s.orbit) advanceOrbit(now);
     render(s.hold ? views[s.hold] : between(views[s.from], views[s.to], ease(t / s.dur)));
     if (s.visor) visorEl.style.opacity = Math.min(1, t / s.dur * 1.6).toFixed(3);
     if (s.text !== lastText) {
@@ -289,25 +425,34 @@
       caption.classList.remove("on");
       setTimeout(() => { caption.textContent = s.text; caption.classList.add("on"); }, i === 0 ? 150 : 250);
     }
+    if (earth) earth.draw();
     raf = requestAnimationFrame(frame);
   }
-  function finish() {
-    cancelAnimationFrame(raf); raf = 0;
-    visorEl.style.opacity = 1;
+  function idle(now) {                               // after the story: keep orbiting and spinning
+    advanceOrbit(now);
     render(views.end);
+    if (earth) earth.draw();
+    raf = requestAnimationFrame(idle);
+  }
+  function finish() {
+    cancelAnimationFrame(raf);
+    visorEl.style.opacity = 1;
     if (!document.body.classList.contains("done")) { document.body.classList.add("done"); sfx.chime(); }
+    raf = requestAnimationFrame(idle);
   }
   function play() {
+    cancelAnimationFrame(raf);
     document.body.classList.add("started");
     document.body.classList.remove("done");
     scrollTo(0, 0);
     lastText = ""; stepIdx = -1; caption.classList.remove("on");
     visorEl.style.opacity = 0;
+    orbitT0 = 0; placeStation(THETA0);
     measure(); render(views.face);
     start = performance.now();
     raf = requestAnimationFrame(frame);
   }
-  addEventListener("resize", () => { measure(); if (!raf) render(views.end); });
+  addEventListener("resize", () => { measure(); if (document.body.classList.contains("done")) render(views.end); });
 
   // ---------- sound (synthesised, quiet) ----------
   let ac = null, master = null, muted = false, humNode = null;
@@ -358,7 +503,6 @@
         g.gain.exponentialRampToValueAtTime(0.09, t + dt + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + dt + 0.18);
         o.connect(g).connect(master); o.start(t + dt); o.stop(t + dt + 0.2);
       });
-      // bubbling
       for (let i = 0; i < 7; i++) {
         const dt = 0.1 + Math.random() * (ms / 1000 - 0.3);
         const o = ac.createOscillator(); o.type = "sine";
@@ -392,7 +536,7 @@
   document.getElementById("replay").onclick = () => { if (ac && ac.state === "suspended") ac.resume(); play(); };
   measure(); render(views.face);
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    document.getElementById("play").onclick = () => { document.body.classList.add("started"); finish(); };
+    document.getElementById("play").onclick = () => { document.body.classList.add("started"); measure(); finish(); };
   }
 })();
 </script>

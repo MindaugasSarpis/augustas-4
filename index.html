@@ -407,17 +407,18 @@
     const st = window.createStation ? window.createStation(cv) : null;
     if (!st) return null;
     const layer = layers.find(L => L.el === "station3d");
-    const SIZES = [1680, 840, 420, 210];
     return {
-      // Size the drawing buffer to roughly the on-screen size: a GPU canvas is sampled without mipmaps,
-      // so a large one shrunk 20x shimmers as it turns.
+      // Keep the drawing buffer close to the on-screen size (never more than ~1.2x larger): a GPU canvas is
+      // composited without mipmaps, so anything drawn larger and shrunk shimmers as the model turns.
       fit(v) {
         const need = 840 * ST.s / v.k * (devicePixelRatio || 1);
-        const w = SIZES.find((x, i) => i === SIZES.length - 1 || SIZES[i + 1] < need * 1.15) || 1680;
-        if (cv.width !== w) { cv.width = w; cv.height = w / 2; st.resize(w, w / 2); layer.R = w / 840; }
+        const w = Math.max(120, Math.min(1680, Math.round(need * 1.1 / 8) * 8));
+        if (Math.abs(w - cv.width) / cv.width > 0.12 || w === 1680 && cv.width !== 1680) {
+          cv.width = w; cv.height = w / 2; st.resize(w, w / 2); layer.R = w / 840;
+        }
       },
       draw(now) {
-        st.draw(rot[0], rot[1], (now / 650) % 2 < 1 ? 1 : 0);
+        st.draw(rot[0], rot[1], 0.5 + 0.5 * Math.sin(now / 280));
         if (!cv.classList.contains("on")) cv.classList.add("on");
       },
     };

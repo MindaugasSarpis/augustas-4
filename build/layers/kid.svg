@@ -2,12 +2,12 @@
   <defs>
     <linearGradient id="suitBody" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#6e4c00"/>
-      <stop offset=".12" stop-color="#c89600"/>
-      <stop offset=".34" stop-color="#ffd43a"/>
-      <stop offset=".55" stop-color="#f9c91e"/>
-      <stop offset=".8" stop-color="#b98700"/>
-      <stop offset=".95" stop-color="#5f4200"/>
-      <stop offset="1" stop-color="#7a5a10"/>
+      <stop offset=".1" stop-color="#c89600"/>
+      <stop offset=".3" stop-color="#ffd43a"/>
+      <stop offset=".5" stop-color="#f6c524"/>
+      <stop offset=".78" stop-color="#a87900"/>
+      <stop offset=".95" stop-color="#4f3600"/>
+      <stop offset="1" stop-color="#6a4a0c"/>
     </linearGradient>
     <radialGradient id="helmetShell" cx="36%" cy="30%" r="80%">
       <stop offset="0" stop-color="#fff0b3"/>
@@ -117,121 +117,115 @@
     <filter id="vialGlow" x="-100%" y="-100%" width="300%" height="300%">
       <feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
-    <clipPath id="torsoClip"><rect x="-96" y="-10" width="192" height="150" rx="58"/></clipPath>
+    <path id="suitShape" d="M-118 -70C-118 -150 -62 -192 -10 -192C48 -192 90 -150 90 -74C90 -44 98 -22 104 2C114 60 106 112 82 140L-80 140C-112 112 -126 60 -116 2C-112 -22 -118 -44 -118 -70Z"/>
+    <clipPath id="suitClip"><use href="#suitShape"/></clipPath>
   </defs>
 
   <g transform="translate(0 -30)">
-    <!-- ===== back: tank, hose to the back of the helmet ===== -->
-    <rect x="-128" y="-60" width="40" height="150" rx="16" fill="url(#tank)"/>
-    <rect x="-122" y="-52" width="6" height="134" rx="3" fill="#fff" opacity=".4"/>
-    <g fill="#1d2129" opacity=".6"><rect x="-128" y="-22" width="40" height="6"/><rect x="-128" y="38" width="40" height="6"/></g>
-    <g fill="url(#steelRing)"><rect x="-130" y="-26" width="44" height="8" rx="2"/><rect x="-130" y="34" width="44" height="8" rx="2"/></g>
-    <rect x="-116" y="-74" width="16" height="16" rx="4" fill="url(#steelRing)"/>
-    <path d="M-108 -74q-24 -60 30 -82" fill="none" stroke="#1a1d22" stroke-width="11" stroke-linecap="round"/>
-    <path d="M-108 -74q-24 -60 30 -82" fill="none" stroke="#5a606b" stroke-width="9" stroke-linecap="round" stroke-dasharray="3 3"/>
-    <path d="M-110 -76q-24 -60 30 -82" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity=".35"/>
+    <!-- ===== back: tank on the near (left) side, hose into the back of the hood ===== -->
+    <rect x="-142" y="-50" width="40" height="150" rx="16" fill="url(#tank)"/>
+    <rect x="-136" y="-42" width="6" height="134" rx="3" fill="#fff" opacity=".4"/>
+    <g fill="#1d2129" opacity=".6"><rect x="-142" y="-12" width="40" height="6"/><rect x="-142" y="48" width="40" height="6"/></g>
+    <g fill="url(#steelRing)"><rect x="-144" y="-16" width="44" height="8" rx="2"/><rect x="-144" y="44" width="44" height="8" rx="2"/></g>
+    <rect x="-130" y="-64" width="16" height="16" rx="4" fill="url(#steelRing)"/>
+    <path d="M-122 -64q-26 -56 18 -78" fill="none" stroke="#1a1d22" stroke-width="11" stroke-linecap="round"/>
+    <path d="M-122 -64q-26 -56 18 -78" fill="none" stroke="#5a606b" stroke-width="9" stroke-linecap="round" stroke-dasharray="3 3"/>
+    <path d="M-124 -66q-26 -56 18 -78" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity=".35"/>
 
-    <!-- ===== legs ===== -->
+    <!-- ===== legs (closer together: three-quarter view) ===== -->
     <g filter="url(#fabric)">
-      <rect x="-62" y="118" width="52" height="62" rx="14" fill="url(#limb)"/>
-      <rect x="10" y="118" width="52" height="62" rx="14" fill="url(#limb)"/>
+      <rect x="-68" y="118" width="54" height="62" rx="14" fill="url(#limb)"/>
+      <rect x="4" y="118" width="52" height="62" rx="14" fill="url(#limb)"/>
     </g>
-    <rect x="-62" y="118" width="52" height="62" rx="14" fill="url(#suitTop)"/>
-    <rect x="10" y="118" width="52" height="62" rx="14" fill="url(#suitTop)"/>
-    <g fill="url(#tape)"><rect x="-62" y="134" width="52" height="7"/><rect x="10" y="134" width="52" height="7"/></g>
-    <g fill="#000" opacity=".25"><rect x="-62" y="141" width="52" height="2"/><rect x="10" y="141" width="52" height="2"/></g>
+    <rect x="-68" y="118" width="54" height="62" rx="14" fill="url(#suitTop)"/>
+    <rect x="4" y="118" width="52" height="62" rx="14" fill="url(#suitTop)"/>
+    <g fill="url(#tape)"><rect x="-68" y="134" width="54" height="7"/><rect x="4" y="134" width="52" height="7"/></g>
+    <g fill="#000" opacity=".25"><rect x="-68" y="141" width="54" height="2"/><rect x="4" y="141" width="52" height="2"/></g>
     <g filter="url(#rubberSheen)">
-      <path d="M-70 170h66v16q0 12 -12 12h-42q-12 0 -12 -12z" fill="url(#rubber)"/>
-      <path d="M4 170h66v16q0 12 -12 12h-42q-12 0 -12 -12z" fill="url(#rubber)"/>
+      <path d="M-78 170h70v16q0 12 -12 12h-46q-12 0 -12 -12z" fill="url(#rubber)"/>
+      <path d="M-2 170h64v16q0 12 -12 12h-40q-12 0 -12 -12z" fill="url(#rubber)"/>
     </g>
-    <g fill="#0b0c0f"><rect x="-70" y="192" width="66" height="6" rx="3"/><rect x="4" y="192" width="66" height="6" rx="3"/></g>
-    <g stroke="#9aa0ab" stroke-width="1.2" opacity=".5" fill="none"><path d="M-62 180h50M12 180h50"/></g>
+    <g fill="#0b0c0f"><rect x="-78" y="192" width="70" height="6" rx="3"/><rect x="-2" y="192" width="64" height="6" rx="3"/></g>
+    <g stroke="#9aa0ab" stroke-width="1.2" opacity=".5" fill="none"><path d="M-70 180h54M6 180h48"/></g>
 
-    <!-- ===== torso with rounded shoulders ===== -->
-    <g filter="url(#fabric)">
-      <rect x="-96" y="-10" width="192" height="150" rx="58" fill="url(#suitBody)"/>
-    </g>
-    <g filter="url(#sheen)"><rect x="-96" y="-10" width="192" height="150" rx="58" fill="none"/></g>
-    <rect x="-96" y="-10" width="192" height="150" rx="58" fill="url(#suitTop)"/>
-    <g clip-path="url(#torsoClip)">
-      <g fill="none" stroke="#4a3200" stroke-opacity=".5" stroke-width="2.5">
-        <path d="M-96 36q96 28 192 0M-96 100q96 28 192 0"/>
+    <!-- ===== one-piece hooded suit ===== -->
+    <g filter="url(#fabric)"><use href="#suitShape" fill="url(#suitBody)"/></g>
+    <g filter="url(#sheen)"><use href="#suitShape" fill="none"/></g>
+    <use href="#suitShape" fill="url(#suitTop)"/>
+    <g clip-path="url(#suitClip)">
+      <!-- hood-to-body fold and quilting, curving with the turned body -->
+      <g fill="none" stroke="#4a3200" stroke-opacity=".55" stroke-width="2.5">
+        <path d="M-120 -32C-70 -4 50 -6 94 -40"/>
+        <path d="M-118 36C-60 60 50 54 108 24M-112 100C-50 124 46 118 102 90"/>
       </g>
-      <g fill="none" stroke="#fff" stroke-opacity=".32" stroke-width="1.2">
-        <path d="M-96 40q96 28 192 0M-96 104q96 28 192 0"/>
+      <g fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="1.2">
+        <path d="M-120 -28C-70 0 50 -2 94 -36"/>
+        <path d="M-118 40C-60 64 50 58 108 28M-112 104C-50 128 46 122 102 94"/>
       </g>
       <g fill="none" stroke="#3a2600" stroke-opacity=".55" stroke-width="1" stroke-dasharray="2.5 3">
-        <path d="M-96 33q96 28 192 0M-96 43q96 28 192 0M-96 97q96 28 192 0M-96 107q96 28 192 0"/>
-        <path d="M-60 -10q-10 40 -8 80M60 -10q10 40 8 80"/>
+        <path d="M-120 -38C-70 -10 50 -12 94 -46M-120 -24C-70 4 50 2 94 -32"/>
+        <path d="M-118 30C-60 54 50 48 108 18M-118 44C-60 68 50 62 108 32M-112 94C-50 118 46 112 102 84M-112 108C-50 132 46 126 102 98"/>
+        <path d="M-78 -8C-84 40 -82 90 -76 140M70 -14C80 40 82 90 72 140"/>
       </g>
-      <ellipse cx="-72" cy="60" rx="18" ry="60" fill="#000" opacity=".22" filter="url(#blur7)"/>
-      <ellipse cx="74" cy="70" rx="14" ry="55" fill="#000" opacity=".18" filter="url(#blur7)"/>
-      <!-- shadow cast by the helmet onto the shoulders -->
-      <ellipse cx="0" cy="6" rx="86" ry="18" fill="#000" opacity=".5" filter="url(#blur7)"/>
-      <path d="M100 0q-30 60 -10 130" fill="none" stroke="#7dff6a" stroke-width="14" opacity=".2" filter="url(#blur7)"/>
-      <rect x="-96" y="18" width="192" height="8" fill="url(#tape)" opacity=".95"/>
-      <rect x="-96" y="26" width="192" height="2" fill="#000" opacity=".3"/>
+      <!-- folds / ambient occlusion: far side darker, crease under the hood -->
+      <path d="M60 -40C110 40 110 100 70 150L130 150L130 -60Z" fill="#000" opacity=".22" filter="url(#blur7)"/>
+      <ellipse cx="-96" cy="50" rx="14" ry="60" fill="#000" opacity=".16" filter="url(#blur7)"/>
+      <path d="M-120 -30C-70 -6 50 -8 94 -40" fill="none" stroke="#000" stroke-width="18" opacity=".35" filter="url(#blur7)"/>
+      <ellipse cx="-40" cy="-176" rx="40" ry="10" fill="#fff" opacity=".22" filter="url(#blur7)"/>
+      <path d="M100 -40q-30 70 -4 170" fill="none" stroke="#7dff6a" stroke-width="14" opacity=".2" filter="url(#blur7)"/>
+      <!-- reflective tape band -->
+      <path d="M-118 20C-60 44 50 38 108 8" fill="none" stroke="url(#tape)" stroke-width="8" opacity=".95"/>
+      <path d="M-118 25C-60 49 50 43 108 13" fill="none" stroke="#000" stroke-width="2" opacity=".3"/>
     </g>
-    <!-- zipper -->
-    <rect x="-4" y="30" width="8" height="96" rx="2" fill="#4a3200" opacity=".55"/>
-    <rect x="-2" y="30" width="4" height="96" fill="#d9b54a"/>
-    <path d="M-2 30v96" stroke="#8c6a12" stroke-width="1" stroke-dasharray="1.5 1.5"/>
-    <rect x="-7" y="112" width="14" height="16" rx="3" fill="url(#steelRing)"/>
-    <rect x="-4" y="128" width="8" height="10" rx="2" fill="#2b2f37"/>
-    <!-- chest valve -->
-    <circle cx="-58" cy="52" r="11" fill="url(#steelRing)"/>
-    <circle cx="-58" cy="52" r="7" fill="#1a1d22"/>
-    <circle cx="-58" cy="52" r="3" fill="#ff5f5f"/>
+    <!-- zipper, offset to the turned chest -->
+    <path d="M14 -4C22 40 24 86 20 126" fill="none" stroke="#4a3200" stroke-width="8" stroke-opacity=".55"/>
+    <path d="M14 -4C22 40 24 86 20 126" fill="none" stroke="#d9b54a" stroke-width="4"/>
+    <path d="M14 -4C22 40 24 86 20 126" fill="none" stroke="#8c6a12" stroke-width="1" stroke-dasharray="1.5 1.5"/>
+    <rect x="13" y="112" width="14" height="16" rx="3" fill="url(#steelRing)"/>
+    <rect x="16" y="128" width="8" height="10" rx="2" fill="#2b2f37"/>
+    <!-- chest valve (near side) -->
+    <circle cx="-54" cy="52" r="11" fill="url(#steelRing)"/>
+    <circle cx="-54" cy="52" r="7" fill="#1a1d22"/>
+    <circle cx="-54" cy="52" r="3" fill="#ff5f5f"/>
     <!-- chest patch -->
-    <rect x="-34" y="55" width="72" height="42" rx="10" fill="#000" opacity=".3" filter="url(#blur3)"/>
-    <rect x="-36" y="52" width="72" height="42" rx="10" fill="#f3f1e6"/>
-    <rect x="-36" y="52" width="72" height="42" rx="10" fill="url(#suitTop)" opacity=".5"/>
-    <rect x="-32" y="56" width="64" height="34" rx="7" fill="none" stroke="#2b2b33" stroke-width="1.2" stroke-dasharray="2 2" opacity=".6"/>
-    <text x="0" y="85" text-anchor="middle" font-family="'Baloo 2', Arial, sans-serif" font-weight="800" font-size="29" fill="#232630">A·4</text>
+    <rect x="-18" y="55" width="70" height="42" rx="10" fill="#000" opacity=".3" filter="url(#blur3)" transform="skewY(-6)"/>
+    <g transform="skewY(-6)">
+      <rect x="-20" y="52" width="70" height="42" rx="10" fill="#f3f1e6"/>
+      <rect x="-20" y="52" width="70" height="42" rx="10" fill="url(#suitTop)" opacity=".5"/>
+      <rect x="-16" y="56" width="62" height="34" rx="7" fill="none" stroke="#2b2b33" stroke-width="1.2" stroke-dasharray="2 2" opacity=".6"/>
+      <text x="15" y="85" text-anchor="middle" font-family="'Baloo 2', Arial, sans-serif" font-weight="800" font-size="29" fill="#232630">A·4</text>
+    </g>
 
-    <!-- ===== left arm, resting ===== -->
-    <rect x="-124" y="6" width="42" height="112" rx="20" fill="#000" opacity=".4" filter="url(#blur3)"/>
-    <g filter="url(#fabric)"><rect x="-128" y="0" width="42" height="112" rx="20" fill="url(#limb)"/></g>
-    <rect x="-128" y="0" width="42" height="112" rx="20" fill="url(#suitTop)"/>
-    <rect x="-128" y="64" width="42" height="7" fill="url(#tape)"/>
-    <path d="M-128 30q21 10 42 0" fill="none" stroke="#4a3200" stroke-opacity=".5" stroke-width="2"/>
-    <g filter="url(#rubberSheen)"><circle cx="-107" cy="116" r="21" fill="url(#rubber)"/></g>
-    <rect x="-126" y="98" width="38" height="8" rx="4" fill="url(#steelRing)"/>
-    <path d="M-98 122q-6 8 -14 8" fill="none" stroke="#000" stroke-width="2" opacity=".4"/>
+    <!-- ===== near (left) arm, resting ===== -->
+    <rect x="-134" y="8" width="44" height="112" rx="21" fill="#000" opacity=".4" filter="url(#blur3)"/>
+    <g filter="url(#fabric)"><rect x="-138" y="2" width="44" height="112" rx="21" fill="url(#limb)"/></g>
+    <rect x="-138" y="2" width="44" height="112" rx="21" fill="url(#suitTop)"/>
+    <rect x="-138" y="66" width="44" height="7" fill="url(#tape)"/>
+    <path d="M-138 32q22 10 44 0" fill="none" stroke="#4a3200" stroke-opacity=".5" stroke-width="2"/>
+    <g filter="url(#rubberSheen)"><circle cx="-116" cy="118" r="21" fill="url(#rubber)"/></g>
+    <rect x="-136" y="100" width="40" height="8" rx="4" fill="url(#steelRing)"/>
+    <path d="M-106 124q-6 8 -14 8" fill="none" stroke="#000" stroke-width="2" opacity=".4"/>
 
-    <!-- ===== collar ring + helmet dome ===== -->
-    <ellipse cx="0" cy="-4" rx="80" ry="18" fill="#000" opacity=".45" filter="url(#blur3)"/>
-    <ellipse cx="0" cy="-8" rx="78" ry="16" fill="url(#steelRing)"/>
-    <ellipse cx="0" cy="-10" rx="70" ry="10" fill="#15181d"/>
-    <!-- dome -->
-    <ellipse cx="0" cy="-88" rx="84" ry="84" fill="#000" opacity=".4" transform="translate(5 8)" filter="url(#blur7)"/>
-    <g filter="url(#shellSheen)"><ellipse cx="0" cy="-88" rx="84" ry="84" fill="url(#helmetShell)"/></g>
-    <ellipse cx="0" cy="-88" rx="84" ry="84" fill="url(#suitTop)" opacity=".6"/>
-    <path d="M-62 -142q30 -34 72 -26" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".35" filter="url(#blur3)"/>
-    <!-- dome seam and rivets -->
-    <path d="M-84 -88a84 84 0 0 0 168 0" fill="none" stroke="#4a3200" stroke-opacity=".35" stroke-width="2"/>
-    <path d="M-84 -86a84 84 0 0 0 168 0" fill="none" stroke="#fff" stroke-opacity=".25" stroke-width="1"/>
-    <!-- helmet lamp -->
-    <g transform="translate(-72 -122)">
+    <!-- ===== hood opening: rubber gasket around the visor, slightly right of the hood's centre ===== -->
+    <ellipse cx="0" cy="-80" rx="74" ry="68" fill="#000" opacity=".4" filter="url(#blur3)"/>
+    <ellipse cx="0" cy="-80" rx="73" ry="67" fill="none" stroke="#2a2d34" stroke-width="9"/>
+    <ellipse cx="0" cy="-80" rx="77" ry="71" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="1.5"/>
+    <ellipse cx="0" cy="-80" rx="73" ry="67" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="1.5" stroke-dasharray="2 4"/>
+    <ellipse cx="0" cy="-80" rx="67" ry="61" fill="#0f1116"/>
+    <!-- hood lamp on the near side -->
+    <g transform="translate(-92 -118)">
       <circle r="11" fill="url(#steelV)"/>
       <circle r="7" fill="#dff6ff"/>
       <circle cx="-2" cy="-2" r="3" fill="#fff"/>
     </g>
-    <!-- visor socket (face + visor layers sit on top) -->
-    <ellipse cx="0" cy="-80" rx="67" ry="61" fill="#0f1116"/>
-    <!-- front lip of the collar, over the dome base -->
-    <path d="M-78 -8a78 16 0 0 0 156 0" fill="none" stroke="url(#steelRing)" stroke-width="10"/>
-    <path d="M-72 -6a72 13 0 0 0 144 0" fill="none" stroke="#fff" stroke-width="1" opacity=".4"/>
-    <path d="M-78 -8a78 16 0 0 0 156 0" fill="none" stroke="#000" stroke-width="1.5" opacity=".35"/>
-    <g fill="#2a2f37"><circle cx="-56" cy="2" r="2.2"/><circle cx="-20" cy="7" r="2.2"/><circle cx="20" cy="7" r="2.2"/><circle cx="56" cy="2" r="2.2"/></g>
 
-    <!-- ===== right arm raised, holding the vial ===== -->
-    <path d="M84 14q60 -20 70 -80" fill="none" stroke="#000" stroke-opacity=".4" stroke-width="46" stroke-linecap="round" filter="url(#blur3)"/>
-    <g filter="url(#fabric)"><path d="M80 10q60 -20 70 -80" fill="none" stroke="url(#limbV)" stroke-width="40" stroke-linecap="round"/></g>
-    <path d="M80 10q60 -20 70 -80" fill="none" stroke="url(#suitTop)" stroke-width="40" stroke-linecap="round" opacity=".7"/>
-    <path d="M78 4q50 -18 60 -70" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".3" filter="url(#blur3)"/>
-    <path d="M118 -30l22 10" stroke="url(#tape)" stroke-width="7"/>
-    <path d="M96 8q40 -14 48 -60" fill="none" stroke="#3a2600" stroke-width="1" stroke-dasharray="2.5 3" opacity=".6"/>
+    <!-- ===== far (right) arm raised, holding the vial ===== -->
+    <path d="M78 16q58 -22 66 -84" fill="none" stroke="#000" stroke-opacity=".4" stroke-width="46" stroke-linecap="round" filter="url(#blur3)"/>
+    <g filter="url(#fabric)"><path d="M74 12q58 -22 66 -84" fill="none" stroke="url(#limbV)" stroke-width="38" stroke-linecap="round"/></g>
+    <path d="M74 12q58 -22 66 -84" fill="none" stroke="url(#suitTop)" stroke-width="38" stroke-linecap="round" opacity=".7"/>
+    <path d="M72 6q48 -20 58 -72" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".3" filter="url(#blur3)"/>
+    <path d="M112 -30l22 10" stroke="url(#tape)" stroke-width="7"/>
+    <path d="M90 10q40 -16 46 -62" fill="none" stroke="#3a2600" stroke-width="1" stroke-dasharray="2.5 3" opacity=".6"/>
     <!-- vial + glow -->
     <circle cx="160" cy="-120" r="80" fill="url(#glowGrad)"/>
     <g filter="url(#vialGlow)"><rect x="151" y="-135" width="18" height="40" rx="9" fill="url(#liquid)"/></g>
@@ -243,14 +237,13 @@
     <rect x="144" y="-176" width="32" height="5" rx="2" fill="#fff" opacity=".45"/>
     <g fill="#eaffdc"><circle cx="160" cy="-108" r="3.5"/><circle cx="156" cy="-118" r="2.5"/><circle cx="164" cy="-126" r="2"/></g>
     <!-- glove -->
-    <rect x="130" y="-66" width="40" height="9" rx="4" fill="url(#steelRing)" transform="rotate(-12 150 -62)"/>
+    <rect x="128" y="-66" width="40" height="9" rx="4" fill="url(#steelRing)" transform="rotate(-12 148 -62)"/>
     <g filter="url(#rubberSheen)"><circle cx="152" cy="-86" r="23" fill="url(#rubber)"/></g>
     <path d="M136 -100q6 -12 20 -12" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".35"/>
     <path d="M140 -78q10 8 22 4" fill="none" stroke="#000" stroke-width="2.5" opacity=".45"/>
     <path d="M160 -70q8 -2 12 -10" fill="none" stroke="#000" stroke-width="2" opacity=".35"/>
-    <path d="M80 10q60 -20 70 -80" fill="none" stroke="#7dff6a" stroke-width="12" stroke-linecap="round" opacity=".2" filter="url(#blur7)"/>
+    <path d="M74 12q58 -22 66 -84" fill="none" stroke="#7dff6a" stroke-width="12" stroke-linecap="round" opacity=".2" filter="url(#blur7)"/>
     <circle cx="160" cy="-92" r="14" fill="#7dff6a" opacity=".25" filter="url(#blur7)"/>
-    <!-- green glint on the helmet from the vial -->
-    <ellipse cx="62" cy="-110" rx="12" ry="30" fill="#7dff6a" opacity=".14" filter="url(#blur7)"/>
+    <ellipse cx="66" cy="-100" rx="12" ry="34" fill="#7dff6a" opacity=".14" filter="url(#blur7)"/>
   </g>
 </svg>

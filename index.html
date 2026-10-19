@@ -267,19 +267,20 @@
       helmet: fit(F.visor, 1.35),
       lab: fit(F.lab, 1.0),
       station: fit(F.station, 1.15),
-      hero: { x: p.x - W * hk / 2, y: p.y - H * hk * 0.6, k: hk },
+      hero: { x: p.x - W * hk / 2 + W * hk * 0.08, y: p.y - H * hk * 0.62, k: hk },
+      hero2: { x: p.x - W * hk / 2 - W * hk * 0.08, y: p.y - H * hk * 0.56, k: hk },
       end,
     };
   }
-  let cur = null, tilt = 0;     // tilt 0..1: station group seen in perspective (hero shot)
+  let cur = null, rot = [0, 0];   // [rotateX, rotateY] degrees: the station group seen in perspective (hero shot)
   function render(v) {
     cur = v;
     for (const L of layers) {
       const g = groupOf(L);
-      if (L.grp && tilt > 0) {
+      if (L.grp && (rot[0] || rot[1])) {
         const ox = (g.ox - v.x) / v.k, oy = (g.oy - v.y) / v.k, gs = g.s / v.k;
         L.node.style.transform = `translate3d(${ox.toFixed(3)}px,${oy.toFixed(3)}px,0) perspective(900px) ` +
-          `rotateX(${(26 * tilt).toFixed(2)}deg) rotateY(${(-22 * tilt).toFixed(2)}deg) ` +
+          `rotateX(${rot[0].toFixed(2)}deg) rotateY(${rot[1].toFixed(2)}deg) ` +
           `translate(${(gs * L.lx0).toFixed(3)}px,${(gs * L.ly0).toFixed(3)}px) scale(${(gs / L.R).toPrecision(6)})`;
         continue;
       }
@@ -407,9 +408,10 @@
     { hold: "lab",                       dur: 1400, text: "Jis dirba slaptoje laboratorijoje…", sfx: "bleeps" },
     { from: "lab",     to: "station",    dur: 2600, text: "…kuri yra kosminėje stotyje…", sfx: "whoosh" },
     { hold: "station",                   dur: 700,  text: "…kuri yra kosminėje stotyje…" },
-    { from: "station", to: "hero",       dur: 1800, text: "…skriejančioje aplink Žemę!", sfx: "whoosh", fx: [0, 1] },
-    { hold: "hero",                      dur: 4200, text: "…skriejančioje aplink Žemę!", fx: [1, 1] },
-    { from: "hero",    to: "end",        dur: 2800, text: "…skriejančioje aplink Žemę!", orbit: true, sfx: "whoosh", fx: [1, 0] },
+    // hero shot: tilt into perspective, pan around the station while the ground streams past, then pull out
+    { from: "station", to: "hero",       dur: 1800, text: "…skriejančioje aplink Žemę!", sfx: "whoosh", boost: [0, 1], rot: [[0, 0], [32, -38]] },
+    { from: "hero",    to: "hero2",      dur: 5000, text: "…skriejančioje aplink Žemę!", boost: [1, 1], rot: [[32, -38], [18, 10]], linear: true },
+    { from: "hero2",   to: "end",        dur: 2800, text: "…skriejančioje aplink Žemę!", orbit: true, sfx: "whoosh", boost: [1, 0], rot: [[18, 10], [0, 0]] },
   ];
   const caption = document.getElementById("caption");
   const visorEl = document.getElementById("visor");
@@ -430,9 +432,10 @@
     const s = steps[i];
     if (i !== stepIdx) { stepIdx = i; if (s.sfx) sfx[s.sfx](s.dur); }
     if (s.orbit) advanceOrbit(now);
-    const fx = s.fx ? s.fx[0] + (s.fx[1] - s.fx[0]) * ease(t / s.dur) : 0;
-    tilt = fx; if (earth) earth.setBoost(fx);
-    render(s.hold ? views[s.hold] : between(views[s.from], views[s.to], ease(t / s.dur)));
+    const u = s.linear ? t / s.dur : ease(t / s.dur), mix = (a, b) => a + (b - a) * u;
+    rot = s.rot ? [mix(s.rot[0][0], s.rot[1][0]), mix(s.rot[0][1], s.rot[1][1])] : [0, 0];
+    if (earth) earth.setBoost(s.boost ? mix(s.boost[0], s.boost[1]) : 0);
+    render(s.hold ? views[s.hold] : between(views[s.from], views[s.to], u));
     if (s.visor) visorEl.style.opacity = Math.min(1, t / s.dur * 1.6).toFixed(3);
     if (s.text !== lastText) {
       lastText = s.text;
@@ -451,7 +454,7 @@
   function finish() {
     cancelAnimationFrame(raf);
     visorEl.style.opacity = 1;
-    tilt = 0; if (earth) earth.setBoost(0);
+    rot = [0, 0]; if (earth) earth.setBoost(0);
     if (!document.body.classList.contains("done")) { document.body.classList.add("done"); sfx.chime(); }
     raf = requestAnimationFrame(idle);
   }

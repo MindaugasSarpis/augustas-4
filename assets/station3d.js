@@ -2,7 +2,7 @@
 // The canvas covers local -420..420 × -210..210. The porthole (radius 44 at the front of the main module)
 // is a real hole: those fragments are discarded so the lab layers underneath show through.
 window.createStation = function (canvas) {
-  const gl = canvas.getContext("webgl2", { alpha: true, premultipliedAlpha: true, antialias: true });
+  const gl = canvas.getContext("webgl2", { alpha: true, premultipliedAlpha: true, antialias: true, depth: true, stencil: false, powerPreference: "high-performance" });
   if (!gl) return null;
 
   const VS = `#version 300 es
@@ -26,7 +26,7 @@ window.createStation = function (canvas) {
       int M = int(vM + 0.5);
       // porthole: a real hole in the front of the main module
       if (M == 0 && vP.z > 0.0 && vP.x * vP.x + vP.y * vP.y < 44.0 * 44.0) discard;
-      vec3 N = normalize(gl_FrontFacing ? vN : -vN);
+      vec3 N = normalize(vN);      // back faces are culled, so no gl_FrontFacing (unreliable on iOS GPUs)
       vec3 L = normalize(vec3(-0.45, -0.7, 0.55));      // sun: upper left, in front
       vec3 V = vec3(0.0, 0.0, 1.0);
       vec3 H = normalize(L + V);
@@ -129,8 +129,8 @@ window.createStation = function (canvas) {
     f([[x0, y0, z0], [x0, y0, z1], [x1, y0, z1], [x1, y0, z0]], [0, -1, 0]);
     f([[x0, y1, z1], [x0, y1, z0], [x1, y1, z0], [x1, y1, z1]], [0, 1, 0]);
   }
-  function panel(x0, x1, y0, y1, z, m) {   // thin double-sided sheet
-    box(x0, x1, y0, y1, z - 0.6, z + 0.6, m);
+  function panel(x0, x1, y0, y1, z, m) {   // thin sheet (a box, so both sides are real faces)
+    box(x0, x1, y0, y1, z - 1.5, z + 1.5, m);
   }
   function sphere(cx, cy, cz, r, m, seg = 12) {
     const rings = [];

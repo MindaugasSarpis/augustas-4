@@ -159,7 +159,8 @@ window.createStation = function (canvas) {
   for (const sx of [-1, 1]) {
     panel(sx * 205, sx * 385, -78, -8, -19, 3); panel(sx * 205, sx * 385, 8, 78, -19, 3);
     box(sx * 205, sx * 385, -3, 3, -22, -16, 2);
-    panel(sx * 236, sx * 290, 12, 102, -19, 4);           // radiator
+    panel(sx * 236, sx * 290, 12, 102, -4, 4);            // radiator: its own plane, in front of the wing
+    box(sx * 260, sx * 266, 4, 14, -8, 0, 7);             // its mount
   }
   // antenna + beacon, small dish post
   cylinderY(0, 0, -108, -38, 2.5, 7);

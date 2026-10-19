@@ -408,10 +408,10 @@
     { hold: "lab",                       dur: 1400, text: "Jis dirba slaptoje laboratorijoje…", sfx: "bleeps" },
     { from: "lab",     to: "station",    dur: 2600, text: "…kuri yra kosminėje stotyje…", sfx: "whoosh" },
     { hold: "station",                   dur: 700,  text: "…kuri yra kosminėje stotyje…" },
-    // hero shot: tilt into perspective, pan around the station while the ground streams past, then pull out
-    { from: "station", to: "hero",       dur: 1800, text: "…skriejančioje aplink Žemę!", sfx: "whoosh", boost: [0, 1], rot: [[0, 0], [32, -38]] },
-    { from: "hero",    to: "hero2",      dur: 5000, text: "…skriejančioje aplink Žemę!", boost: [1, 1], rot: [[32, -38], [18, 10]], linear: true },
-    { from: "hero2",   to: "end",        dur: 2800, text: "…skriejančioje aplink Žemę!", orbit: true, sfx: "whoosh", boost: [1, 0], rot: [[18, 10], [0, 0]] },
+    // hero shot: slow drift past the station over the Earth's limb, then pull out
+    { from: "station", to: "hero",       dur: 1800, text: "…skriejančioje aplink Žemę!", sfx: "whoosh" },
+    { from: "hero",    to: "hero2",      dur: 4000, text: "…skriejančioje aplink Žemę!", linear: true },
+    { from: "hero2",   to: "end",        dur: 2800, text: "…skriejančioje aplink Žemę!", orbit: true, sfx: "whoosh" },
   ];
   const caption = document.getElementById("caption");
   const visorEl = document.getElementById("visor");

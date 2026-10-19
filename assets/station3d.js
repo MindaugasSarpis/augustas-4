@@ -33,31 +33,37 @@ window.createStation = function (canvas) {
       float diff = max(dot(N, L), 0.0);
       float spec = pow(max(dot(N, H), 0.0), 40.0);
       float earthshine = max(N.y, 0.0) * 0.35;        // blue light from the planet below
-      vec3 base; float ks = 0.5, rough = 1.0;
+      // units per pixel: fade fine patterns out when they get smaller than a few pixels (no shimmer)
+      float upp = fwidth(vP.x) + fwidth(vP.y) + fwidth(vP.z);
+      float fine = 1.0 - smoothstep(1.5, 4.0, upp);
+      vec3 base; float ks = 0.5;
       if (M == 0 || M == 8) {                           // white hull with panel seams
         base = vec3(0.86, 0.88, 0.92);
-        float seam = smoothstep(0.0, 0.6, abs(fract(vP.x / 44.0 + 0.5) - 0.5) * 44.0) ;
-        float ring = smoothstep(0.0, 0.8, abs(fract(atan(vP.y, vP.z) / 1.5708 + 0.5) - 0.5) * 30.0);
-        base *= 0.55 + 0.45 * min(seam, ring);
-        base *= 0.92 + 0.08 * noise(vP.xy * 0.4);
+        float seam = smoothstep(0.0, 0.6 + upp, abs(fract(vP.x / 44.0 + 0.5) - 0.5) * 44.0);
+        float ring = smoothstep(0.0, 0.8 + upp, abs(fract(atan(vP.y, vP.z) / 1.5708 + 0.5) - 0.5) * 30.0);
+        base *= 1.0 - 0.45 * fine * (1.0 - min(seam, ring));
+        base *= 0.92 + 0.08 * noise(vP.xy * 0.4) * fine;
       } else if (M == 1) {                              // gold multi-layer insulation
         float w = noise(vP.xy * 0.18 + vP.z * 0.05) * 0.6 + noise(vP.yz * 0.5) * 0.4;
         base = mix(vec3(0.55, 0.38, 0.12), vec3(0.95, 0.78, 0.38), w);
-        float strap = step(0.93, fract(vP.x / 26.0));
+        float strap = smoothstep(0.93 - upp / 26.0, 0.93 + upp / 26.0, fract(vP.x / 26.0)) * fine;
         base = mix(base, vec3(0.25, 0.17, 0.06), strap * 0.7);
         ks = 0.9;
       } else if (M == 2) {                              // truss lattice
         float d = fract((vP.x + vP.y + vP.z) / 16.0);
-        base = mix(vec3(0.25, 0.28, 0.34), vec3(0.78, 0.82, 0.88), step(0.45, d));
+        float stripe = mix(0.5, smoothstep(0.45 - upp / 16.0, 0.45 + upp / 16.0, d), fine);
+        base = mix(vec3(0.25, 0.28, 0.34), vec3(0.78, 0.82, 0.88), stripe);
         ks = 0.2;
       } else if (M == 3) {                              // solar cells
         vec2 c = fract(vT / vec2(12.0, 14.0));
-        float line = step(0.08, c.x) * step(0.07, c.y);
+        vec2 aa = vec2(upp / 12.0, upp / 14.0);
+        float line = smoothstep(0.08 - aa.x, 0.08 + aa.x, c.x) * smoothstep(0.07 - aa.y, 0.07 + aa.y, c.y);
+        line = mix(0.86, line, fine);
         base = mix(vec3(0.05, 0.09, 0.2), vec3(0.12, 0.24, 0.55), line);
-        base += vec3(0.08, 0.1, 0.16) * step(0.5, c.y) * line;
+        base += vec3(0.08, 0.1, 0.16) * mix(0.5, smoothstep(0.5 - aa.y, 0.5 + aa.y, c.y), fine) * line;
         ks = 0.6; spec = pow(max(dot(N, H), 0.0), 12.0);
       } else if (M == 4) {                              // radiator
-        base = vec3(0.9, 0.92, 0.95) * (0.8 + 0.2 * step(0.12, fract(vT.x / 9.0)));
+        base = vec3(0.9, 0.92, 0.95) * (0.8 + 0.2 * mix(0.88, smoothstep(0.12 - upp / 9.0, 0.12 + upp / 9.0, fract(vT.x / 9.0)), fine));
         ks = 0.15;
       } else if (M == 5) {                              // beacon
         o = vec4(mix(vec3(0.35, 0.05, 0.05), vec3(1.0, 0.35, 0.3), beacon), 1.0); return;

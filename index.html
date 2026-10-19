@@ -371,20 +371,21 @@
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         ready++;
+        if (ready === 2) api.draw();        // swap in the live globe before the story starts, never mid-zoom
       }; im.src = src;
     };
     load(0, "assets/earth-day.jpg"); load(1, "assets/earth-clouds.jpg");
     const t0 = performance.now();
-    return {
+    const api = {
       draw() {
         if (ready < 2) return;
-        if (cur && 600 / cur.k > 4 * Math.max(W, H)) return;   // zoomed in past the station: Earth is hidden
         const t = (performance.now() - t0) / 1000;
         gl.uniform1f(uSpin, -t * 2 * Math.PI / 110); gl.uniform1f(uDrift, -t / 900);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         if (!cv.classList.contains("on")) cv.classList.add("on");
       },
     };
+    return api;
   })();
 
   // ---------- sequence ----------

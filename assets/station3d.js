@@ -190,6 +190,7 @@ window.createStation = function (canvas) {
     ]);
   }
   return {
+    resize(w, h) { gl.viewport(0, 0, w, h); },
     draw(axDeg, ayDeg, beacon) {
       gl.uniformMatrix3fv(uR, false, matrix(axDeg * Math.PI / 180, ayDeg * Math.PI / 180));
       gl.uniform1f(uBeacon, beacon);

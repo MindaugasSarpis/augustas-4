@@ -406,7 +406,16 @@
     const cv = document.getElementById("station3d");
     const st = window.createStation ? window.createStation(cv) : null;
     if (!st) return null;
+    const layer = layers.find(L => L.el === "station3d");
+    const SIZES = [1680, 840, 420, 210];
     return {
+      // Size the drawing buffer to roughly the on-screen size: a GPU canvas is sampled without mipmaps,
+      // so a large one shrunk 20x shimmers as it turns.
+      fit(v) {
+        const need = 840 * ST.s / v.k * (devicePixelRatio || 1);
+        const w = SIZES.find((x, i) => i === SIZES.length - 1 || SIZES[i + 1] < need * 1.15) || 1680;
+        if (cv.width !== w) { cv.width = w; cv.height = w / 2; st.resize(w, w / 2); layer.R = w / 840; }
+      },
       draw(now) {
         st.draw(rot[0], rot[1], (now / 650) % 2 < 1 ? 1 : 0);
         if (!cv.classList.contains("on")) cv.classList.add("on");
@@ -450,7 +459,9 @@
     const u = s.linear ? t / s.dur : ease(t / s.dur), mix = (a, b) => a + (b - a) * u;
     if (s.rot) { const to = s.rot[1] === "idle" ? idleRot(now) : s.rot[1]; rot = [mix(s.rot[0][0], to[0]), mix(s.rot[0][1], to[1])]; }
     else rot = [0, 0];
-    render(s.hold ? views[s.hold] : between(views[s.from], views[s.to], u));
+    const v = s.hold ? views[s.hold] : between(views[s.from], views[s.to], u);
+    if (station) station.fit(v);
+    render(v);
     if (station) station.draw(now);
     if (s.visor) visorEl.style.opacity = Math.min(1, t / s.dur * 1.6).toFixed(3);
     if (s.text !== lastText) {
@@ -464,6 +475,7 @@
   function idle(now) {                               // after the story: keep orbiting, spinning and slowly turning
     advanceOrbit(now);
     rot = idleRot(now);
+    if (station) station.fit(views.end);
     render(views.end);
     if (earth) earth.draw();
     if (station) station.draw(now);
@@ -570,7 +582,7 @@
   document.getElementById("play").onclick = () => { audio(); if (ac && ac.state === "suspended") ac.resume(); play(); };
   document.getElementById("skip").onclick = finish;
   document.getElementById("replay").onclick = () => { if (ac && ac.state === "suspended") ac.resume(); play(); };
-  measure(); render(views.face);
+  measure(); if (station) station.fit(views.face); render(views.face);
   if (station) station.draw(performance.now());
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
     document.getElementById("play").onclick = () => { document.body.classList.add("started"); measure(); finish(); };

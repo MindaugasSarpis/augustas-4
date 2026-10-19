@@ -7,18 +7,21 @@
 <title>Augustui 4!</title>
 <meta property="og:title" content="Augustui 4! 🚀">
 <meta property="og:description" content="Kvietimas į gimtadienio misiją – spalio 24 d., 15:30, Adventica (Ozas).">
-<meta name="theme-color" content="#050816">
+<meta name="theme-color" content="#030510">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="assets/face.webp">
+<link rel="preload" as="image" href="assets/visor.webp">
+<link rel="preload" as="image" href="assets/kid.webp">
 <style>
   :root {
-    --space: #050816;
+    --space: #030510;
     --ink: #f4f6ff;
     --muted: #b9c2e6;
     --suit: #ffd23f;
     --glow: #7dff6a;
-    --card: rgba(14, 20, 48, 0.82);
+    --card: rgba(10, 14, 36, 0.78);
     --line: rgba(255, 255, 255, 0.14);
   }
   * { box-sizing: border-box; }
@@ -28,48 +31,92 @@
     color: var(--ink);
     font-family: "Baloo 2", system-ui, sans-serif;
     -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
   }
-  #world {
-    position: fixed; inset: 0;
-    width: 100vw; height: 100vh; height: 100dvh;
-    display: block;
-  }
-  .ui { position: relative; z-index: 2; }
 
-  /* Captions during the fly-out */
-  #caption {
-    position: fixed; left: 16px; right: 16px;
-    bottom: calc(72px + env(safe-area-inset-bottom));
-    text-align: center; z-index: 3;
-    font-size: clamp(22px, 6.5vw, 34px); font-weight: 800; line-height: 1.15;
-    text-shadow: 0 2px 12px rgba(0,0,0,.8), 0 0 2px #000;
-    opacity: 0; transition: opacity .45s ease;
+  /* ===== the layered world ===== */
+  #stage {
+    position: fixed; inset: 0; overflow: hidden;
+    background: var(--space);
+    contain: strict;
+  }
+  .layer {
+    position: absolute; left: 0; top: 0;
+    transform-origin: 0 0;
+    will-change: transform;
     pointer-events: none;
+    user-select: none; -webkit-user-drag: none;
+    backface-visibility: hidden;
+  }
+  img.layer { display: block; }
+  #orbit { overflow: visible; }
+  #visor { opacity: 0; }
+  #glow { width: 160px; height: 160px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(217,255,181,.9) 0%, rgba(141,255,94,.45) 35%, rgba(125,255,106,0) 70%); }
+  #glow i { position: absolute; inset: 0; border-radius: 50%; background: inherit; animation: pulse 1.6s ease-in-out infinite alternate; }
+  @keyframes pulse { from { opacity: .35; transform: scale(.85); } to { opacity: 1; transform: scale(1.15); } }
+  #beacon { width: 18px; height: 18px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ffb3b3, #ff2e2e 55%, rgba(255,46,46,0) 72%);
+    box-shadow: 0 0 10px 3px rgba(255,60,60,.5); animation: blink 1.3s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: .1; } }
+  @media (prefers-reduced-motion: reduce) { #glow i, #beacon { animation: none; } }
+
+  /* ===== UI ===== */
+  .ui { position: relative; z-index: 2; }
+  #caption {
+    position: fixed; left: 16px; right: 16px; z-index: 3;
+    bottom: calc(72px + env(safe-area-inset-bottom));
+    text-align: center; pointer-events: none;
+    font-size: clamp(22px, 6.5vw, 34px); font-weight: 800; line-height: 1.15;
+    text-shadow: 0 2px 14px rgba(0,0,0,.9), 0 0 2px #000;
+    opacity: 0; transition: opacity .4s ease;
   }
   #caption.on { opacity: 1; }
-  #skip {
-    position: fixed; z-index: 4;
-    right: 16px; top: calc(16px + env(safe-area-inset-top));
-    background: rgba(0,0,0,.45); color: var(--ink);
+  .pill {
+    position: fixed; z-index: 4; top: calc(14px + env(safe-area-inset-top));
+    background: rgba(0,0,0,.5); color: var(--ink);
     border: 1px solid var(--line); border-radius: 999px;
-    font: inherit; font-size: 16px; padding: 6px 16px;
+    font: inherit; font-size: 16px; font-weight: 700; padding: 7px 16px;
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
   }
+  #skip { right: 14px; }
+  #mute { left: 14px; width: 44px; padding: 7px 0; text-align: center; }
   body.done #skip, body.done #caption { display: none; }
+  body:not(.started) #skip, body:not(.started) #mute { display: none; }
 
-  /* Invitation card */
+  /* start screen */
+  #start {
+    position: fixed; inset: 0; z-index: 10;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+    padding: 24px; text-align: center;
+    background: radial-gradient(ellipse at 50% 40%, rgba(40,60,140,.5), rgba(3,5,16,.985) 70%);
+    transition: opacity .6s ease;
+  }
+  body.started #start { opacity: 0; pointer-events: none; }
+  #start .eyebrow { color: var(--glow); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; font-size: 14px; margin: 0; }
+  #start h2 { margin: 0; font-size: clamp(30px, 9vw, 48px); line-height: 1.05; }
+  #start h2 span { color: var(--suit); }
+  #start p { margin: 0; color: var(--muted); font-size: 17px; max-width: 320px; }
+  #play {
+    margin-top: 8px; font: inherit; font-weight: 800; font-size: 22px;
+    background: var(--suit); color: #2a1d00; border: 0; border-radius: 18px; padding: 16px 36px;
+    box-shadow: 0 6px 0 #c99a00, 0 12px 30px rgba(255,210,63,.3); cursor: pointer;
+  }
+  #play:active { transform: translateY(3px); box-shadow: 0 3px 0 #c99a00; }
+  #start small { color: var(--muted); font-size: 14px; }
+
+  /* invitation card */
   #card {
     position: absolute; left: 0; right: 0;
     top: 54vh; top: 54dvh;
     margin: 0 auto 32px; width: min(460px, calc(100% - 32px));
     background: var(--card);
-    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
     border: 1px solid var(--line); border-radius: 24px;
     padding: 22px 20px 20px;
-    opacity: 0; transform: translateY(40px);
-    transition: opacity .8s ease, transform .8s ease;
-    visibility: hidden;
+    opacity: 0; transform: translateY(40px); visibility: hidden;
+    transition: opacity .8s ease, transform .8s ease, visibility 0s .8s;
   }
-  body.done #card { opacity: 1; transform: none; visibility: visible; }
+  body.done #card { opacity: 1; transform: none; visibility: visible; transition-delay: 0s; }
   @media (min-aspect-ratio: 1/1) {
     #card { top: 50%; left: auto; right: 6vw; margin: 0; transform: translateY(-40%); }
     body.done #card { transform: translateY(-50%); }
@@ -90,444 +137,44 @@
     box-shadow: 0 6px 0 #c99a00, 0 10px 24px rgba(255, 210, 63, .25);
   }
   .btn:active { transform: translateY(3px); box-shadow: 0 3px 0 #c99a00; }
-  .btn[aria-disabled="true"] { filter: grayscale(.6); opacity: .7; }
   .due { margin: 12px 0 0; text-align: center; color: var(--muted); font-size: 16px; }
   .row { display: flex; gap: 10px; margin-top: 16px; }
   .ghost {
     flex: 1; text-align: center; text-decoration: none;
     background: transparent; color: var(--ink);
     border: 1px solid var(--line); border-radius: 14px;
-    font: inherit; font-size: 16px; padding: 9px 10px;
-  }
-
-  /* Small living details inside the SVG */
-  .bubble { animation: rise 1.6s ease-in infinite; }
-  .bubble:nth-child(2) { animation-delay: .5s; }
-  .bubble:nth-child(3) { animation-delay: 1.05s; }
-  @keyframes rise { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-46px); opacity: 0; } }
-  .halo { animation: pulse 1.8s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
-  @keyframes pulse { from { opacity: .55; transform: scale(.9); } to { opacity: 1; transform: scale(1.1); } }
-  .land { animation: spin 90s linear infinite; }
-  .clouds { animation: spin 70s linear infinite; }
-  @keyframes spin { to { transform: translateX(-1200px); } }
-  .tw { animation: tw 2.4s ease-in-out infinite alternate; }
-  @keyframes tw { to { opacity: .2; } }
-  .blink { animation: blink 1.2s steps(1) infinite; }
-  @keyframes blink { 50% { opacity: .15; } }
-  @media (prefers-reduced-motion: reduce) {
-    .bubble, .halo, .land, .clouds, .tw, .blink { animation: none; }
+    font: inherit; font-size: 16px; padding: 9px 10px; cursor: pointer;
   }
 </style>
 </head>
 <body>
 
-<svg id="world" xmlns="http://www.w3.org/2000/svg" viewBox="-500 -500 1000 1000" aria-hidden="true">
-  <defs>
-    <!-- ===== Earth ===== -->
-    <radialGradient id="ocean" cx="32%" cy="30%" r="80%">
-      <stop offset="0" stop-color="#3f9fe8"/>
-      <stop offset=".45" stop-color="#1c63b8"/>
-      <stop offset=".8" stop-color="#0d3a7c"/>
-      <stop offset="1" stop-color="#071f4a"/>
-    </radialGradient>
-    <radialGradient id="terminator" cx="28%" cy="26%" r="78%">
-      <stop offset=".5" stop-color="#000" stop-opacity="0"/>
-      <stop offset=".82" stop-color="#000" stop-opacity=".45"/>
-      <stop offset="1" stop-color="#000" stop-opacity=".9"/>
-    </radialGradient>
-    <radialGradient id="specular" cx="50%" cy="50%" r="50%">
-      <stop offset="0" stop-color="#fff" stop-opacity=".55"/>
-      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="atmo">
-      <stop offset=".84" stop-color="#8fd3ff" stop-opacity="0"/>
-      <stop offset=".88" stop-color="#8fd3ff" stop-opacity=".55"/>
-      <stop offset=".93" stop-color="#4aa8ff" stop-opacity=".25"/>
-      <stop offset="1" stop-color="#4aa8ff" stop-opacity="0"/>
-    </radialGradient>
-    <filter id="landTex" x="-10%" y="-10%" width="120%" height="120%">
-      <feTurbulence type="fractalNoise" baseFrequency=".018" numOctaves="4" seed="7" result="n"/>
-      <feColorMatrix in="n" type="matrix" result="tex"
-        values="0.55 0.25 0 0 0.06   0.4 0.45 0 0 0.16   0.12 0.1 0 0 0.03   0 0 0 0 1"/>
-      <feComposite in="tex" in2="SourceGraphic" operator="in"/>
-    </filter>
-    <filter id="clouds" x="-5%" y="-5%" width="110%" height="110%">
-      <feTurbulence type="fractalNoise" baseFrequency=".008 .016" numOctaves="5" seed="3" result="n"/>
-      <feColorMatrix in="n" type="matrix" values="0 0 0 0 1   0 0 0 0 1   0 0 0 0 1   0 0 0 11 -6.2" result="c"/>
-      <feGaussianBlur in="c" stdDeviation="1.2" result="cb"/>
-      <feComposite in="cb" in2="SourceGraphic" operator="in"/>
-    </filter>
-    <filter id="blur6"><feGaussianBlur stdDeviation="6"/></filter>
-    <filter id="blur14"><feGaussianBlur stdDeviation="14"/></filter>
-    <filter id="blur30" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="30"/></filter>
-    <clipPath id="earthClip"><circle r="300"/></clipPath>
+<div id="stage" aria-hidden="true">
+  <img class="layer" id="stars"   src="assets/stars.webp"   width="2000" height="2000" alt="">
+  <img class="layer" id="earth"   src="assets/earth.webp"   width="1400" height="1400" alt="">
+  <svg class="layer" id="orbit" width="1000" height="1000" viewBox="-500 -500 1000 1000">
+    <ellipse rx="430" ry="120" transform="rotate(-15)" fill="none" stroke="#fff" stroke-opacity=".28" stroke-width="2" stroke-dasharray="8 10"/>
+  </svg>
+  <img class="layer" id="lab"     src="assets/lab.webp"     width="2800" height="2800" alt="">
+  <div class="layer" id="glow"><i></i></div>
+  <img class="layer" id="kid"     src="assets/kid.webp"     width="1560" height="1760" alt="">
+  <img class="layer" id="face"    src="assets/face.webp"    width="900"  height="900"  alt="">
+  <img class="layer" id="visor"   src="assets/visor.webp"   width="900"  height="900"  alt="">
+  <img class="layer" id="station" src="assets/station.webp" width="2400" height="840"  alt="">
+  <div class="layer" id="beacon"></div>
+</div>
 
-    <!-- ===== Station ===== -->
-    <linearGradient id="hull" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffffff"/>
-      <stop offset=".18" stop-color="#e3e9f2"/>
-      <stop offset=".55" stop-color="#9ea9bb"/>
-      <stop offset=".85" stop-color="#5c6779"/>
-      <stop offset="1" stop-color="#3b4452"/>
-    </linearGradient>
-    <linearGradient id="truss" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#d7dde8"/>
-      <stop offset=".5" stop-color="#8d97a8"/>
-      <stop offset="1" stop-color="#454c5a"/>
-    </linearGradient>
-    <linearGradient id="panelSheen" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#fff" stop-opacity=".35"/>
-      <stop offset=".45" stop-color="#fff" stop-opacity="0"/>
-      <stop offset="1" stop-color="#000" stop-opacity=".35"/>
-    </linearGradient>
-    <pattern id="panelGrid" width="30" height="35" patternUnits="userSpaceOnUse">
-      <rect width="30" height="35" fill="#163d8a"/>
-      <rect x="2" y="2" width="26" height="31" fill="#1e52b4"/>
-      <path d="M2 2L28 33" stroke="#6ea2ff" stroke-width="1" opacity=".35"/>
-    </pattern>
-    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#f4f7fb"/>
-      <stop offset=".4" stop-color="#9aa4b5"/>
-      <stop offset=".7" stop-color="#3f4756"/>
-      <stop offset="1" stop-color="#b9c2d0"/>
-    </linearGradient>
-    <clipPath id="portholeClip"><circle r="40"/></clipPath>
+<div id="start" class="ui">
+  <p class="eyebrow">Slapta misija</p>
+  <h2>Augustui <span>4!</span></h2>
+  <p>Gavote slaptą pranešimą iš kosminės stoties. Pasiruošę?</p>
+  <button id="play" type="button">Pradėti misiją ▶</button>
+  <small>🔊 Geriausia su garsu</small>
+</div>
 
-    <!-- ===== Lab ===== -->
-    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#18505f"/>
-      <stop offset=".55" stop-color="#0c3341"/>
-      <stop offset="1" stop-color="#071f29"/>
-    </linearGradient>
-    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#143e4b"/>
-      <stop offset="1" stop-color="#04141b"/>
-    </linearGradient>
-    <radialGradient id="spot" cx="50%" cy="0%" r="70%">
-      <stop offset="0" stop-color="#9fe8ff" stop-opacity=".32"/>
-      <stop offset="1" stop-color="#9fe8ff" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="vignette" cx="50%" cy="45%" r="70%">
-      <stop offset=".55" stop-color="#000" stop-opacity="0"/>
-      <stop offset="1" stop-color="#000" stop-opacity=".75"/>
-    </radialGradient>
-    <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#f3f6f9"/>
-      <stop offset=".5" stop-color="#b8c3cf"/>
-      <stop offset="1" stop-color="#6c7988"/>
-    </linearGradient>
-    <linearGradient id="glassH" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#fff" stop-opacity=".55"/>
-      <stop offset=".3" stop-color="#fff" stop-opacity=".1"/>
-      <stop offset=".8" stop-color="#fff" stop-opacity=".05"/>
-      <stop offset="1" stop-color="#fff" stop-opacity=".4"/>
-    </linearGradient>
-    <linearGradient id="screenG" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#0e3a4c"/>
-      <stop offset="1" stop-color="#061e29"/>
-    </linearGradient>
-
-    <!-- ===== Suit ===== -->
-    <linearGradient id="suitBody" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#9c6d00"/>
-      <stop offset=".18" stop-color="#e8b100"/>
-      <stop offset=".42" stop-color="#ffd94d"/>
-      <stop offset=".62" stop-color="#ffcf2e"/>
-      <stop offset=".85" stop-color="#d79f00"/>
-      <stop offset="1" stop-color="#7d5600"/>
-    </linearGradient>
-    <linearGradient id="suitTop" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#fff2b3" stop-opacity=".55"/>
-      <stop offset=".35" stop-color="#fff" stop-opacity="0"/>
-      <stop offset="1" stop-color="#5a3c00" stop-opacity=".45"/>
-    </linearGradient>
-    <linearGradient id="limb" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#a97700"/>
-      <stop offset=".4" stop-color="#ffd43a"/>
-      <stop offset="1" stop-color="#8a6000"/>
-    </linearGradient>
-    <linearGradient id="limbV" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#a97700"/>
-      <stop offset=".4" stop-color="#ffd43a"/>
-      <stop offset="1" stop-color="#8a6000"/>
-    </linearGradient>
-    <radialGradient id="rubber" cx="35%" cy="30%" r="75%">
-      <stop offset="0" stop-color="#5a5f6b"/>
-      <stop offset="1" stop-color="#15171c"/>
-    </radialGradient>
-    <linearGradient id="tank" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#4e5767"/>
-      <stop offset=".45" stop-color="#b5bfcd"/>
-      <stop offset="1" stop-color="#3a414d"/>
-    </linearGradient>
-    <radialGradient id="visorGlass" cx="30%" cy="22%" r="80%">
-      <stop offset="0" stop-color="#fff" stop-opacity=".5"/>
-      <stop offset=".35" stop-color="#fff" stop-opacity=".06"/>
-      <stop offset=".8" stop-color="#5de0ff" stop-opacity=".05"/>
-      <stop offset="1" stop-color="#0a2a3a" stop-opacity=".55"/>
-    </radialGradient>
-    <linearGradient id="visorRing" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#6f7684"/>
-      <stop offset=".35" stop-color="#1f232b"/>
-      <stop offset=".75" stop-color="#2d323c"/>
-      <stop offset="1" stop-color="#7c8390"/>
-    </linearGradient>
-    <radialGradient id="glowGrad">
-      <stop offset="0" stop-color="#d6ffb0" stop-opacity=".95"/>
-      <stop offset=".4" stop-color="#8dff5e" stop-opacity=".45"/>
-      <stop offset="1" stop-color="#7dff6a" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="liquid" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#46d62f"/>
-      <stop offset=".5" stop-color="#b8ff8a"/>
-      <stop offset="1" stop-color="#3fbf2a"/>
-    </linearGradient>
-    <filter id="fabric" x="0" y="0" width="100%" height="100%">
-      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="2" result="n"/>
-      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .12 0" result="g"/>
-      <feComposite in="g" in2="SourceGraphic" operator="in" result="grain"/>
-      <feBlend in="SourceGraphic" in2="grain" mode="multiply"/>
-    </filter>
-    <filter id="innerShade" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="9" result="b"/>
-      <feComposite in="b" in2="SourceGraphic" operator="in"/>
-    </filter>
-    <filter id="vialGlow" x="-100%" y="-100%" width="300%" height="300%">
-      <feGaussianBlur stdDeviation="10" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <clipPath id="visorClip"><ellipse cx="0" cy="-80" rx="62" ry="56"/></clipPath>
-    <clipPath id="bodyClip"><rect x="-100" y="-170" width="200" height="310" rx="96"/></clipPath>
-  </defs>
-
-  <g id="root">
-    <rect x="-20000" y="-20000" width="40000" height="40000" fill="#030510"/>
-    <!-- faint milky way band -->
-    <g id="stars"></g>
-
-    <!-- EARTH -->
-    <g id="earth">
-      <circle r="330" fill="url(#atmo)"/>
-      <circle r="300" fill="url(#ocean)"/>
-      <g clip-path="url(#earthClip)">
-        <g class="land" filter="url(#landTex)" fill="#4a9a3c">
-          <g id="continents">
-            <path d="M-262 -172c42-44 118-54 162-24s24 72-18 92-32 62-82 72-108-18-112-62 8-50 50-78z"/>
-            <path d="M-58 42c48-24 112-2 122 48s-28 92-70 122-92 12-92-40 0-110 40-130z"/>
-            <path d="M118 -232c62-12 142 18 152 68s-58 62-102 52-92-20-102-60 12-56 52-60z"/>
-            <path d="M198 58c42-2 82 30 72 72s-52 50-82 30-42-92 10-102z"/>
-            <path d="M-332 118c32-12 72 10 72 42s-42 50-72 40-32-70 0-82z"/>
-            <path d="M-120 -300c40 0 70 20 60 40s-60 20-80 0-10-40 20-40z" opacity=".8"/>
-          </g>
-          <use href="#continents" x="1200"/>
-        </g>
-        <!-- polar ice -->
-        <ellipse cy="-296" rx="150" ry="28" fill="#eef6ff" opacity=".9"/>
-        <ellipse cy="300" rx="130" ry="22" fill="#eef6ff" opacity=".8"/>
-        <!-- clouds -->
-        <g class="clouds" opacity=".7">
-          <rect x="-600" y="-310" width="1200" height="620" fill="#fff" filter="url(#clouds)"/>
-          <rect x="600" y="-310" width="1200" height="620" fill="#fff" filter="url(#clouds)"/>
-        </g>
-        <circle r="300" fill="url(#terminator)"/>
-        <ellipse cx="-110" cy="-120" rx="120" ry="80" fill="url(#specular)" transform="rotate(-30 -110 -120)"/>
-      </g>
-      <!-- limb highlight -->
-      <circle r="299" fill="none" stroke="#bfe8ff" stroke-width="2.5" opacity=".7" filter="url(#blur6)"/>
-      <ellipse rx="430" ry="120" transform="rotate(-15)" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="2" stroke-dasharray="8 10"/>
-      <rect id="earthFrame" x="-450" y="-320" width="900" height="640" fill="none"/>
-    </g>
-
-    <!-- SPACE STATION (local units; porthole at 0,0) -->
-    <g id="station" transform="translate(180 -156) scale(0.25)">
-      <rect id="stationFrame" x="-400" y="-130" width="800" height="260" fill="none"/>
-      <!-- truss -->
-      <rect x="-380" y="-6" width="760" height="12" rx="3" fill="url(#truss)"/>
-      <path d="M-380 -6H380" stroke="#fff" stroke-width="1" opacity=".5"/>
-      <!-- solar arrays -->
-      <g>
-        <rect x="-385" y="-75" width="180" height="70" fill="url(#panelGrid)"/>
-        <rect x="-385" y="5" width="180" height="70" fill="url(#panelGrid)"/>
-        <rect x="205" y="-75" width="180" height="70" fill="url(#panelGrid)"/>
-        <rect x="205" y="5" width="180" height="70" fill="url(#panelGrid)"/>
-        <rect x="-385" y="-75" width="180" height="70" fill="url(#panelSheen)"/>
-        <rect x="-385" y="5" width="180" height="70" fill="url(#panelSheen)"/>
-        <rect x="205" y="-75" width="180" height="70" fill="url(#panelSheen)"/>
-        <rect x="205" y="5" width="180" height="70" fill="url(#panelSheen)"/>
-        <g fill="none" stroke="#dfe6f2" stroke-width="3">
-          <rect x="-385" y="-75" width="180" height="70"/><rect x="-385" y="5" width="180" height="70"/>
-          <rect x="205" y="-75" width="180" height="70"/><rect x="205" y="5" width="180" height="70"/>
-        </g>
-      </g>
-      <!-- side modules -->
-      <rect x="-200" y="-42" width="95" height="84" rx="16" fill="url(#hull)"/>
-      <rect x="105" y="-42" width="95" height="84" rx="16" fill="url(#hull)"/>
-      <path d="M-170 -42v84M-140 -42v84M140 -42v84M170 -42v84" stroke="#000" stroke-opacity=".3" stroke-width="3"/>
-      <path d="M-172 -42v84M-142 -42v84M138 -42v84M168 -42v84" stroke="#fff" stroke-opacity=".5" stroke-width="1"/>
-      <!-- antenna -->
-      <path d="M0 -70v-40" stroke="url(#truss)" stroke-width="6"/>
-      <circle cy="-115" r="9" fill="#ff5b5b" class="blink" filter="url(#vialGlow)"/>
-      <!-- main module -->
-      <rect x="-110" y="-72" width="220" height="144" rx="40" fill="url(#hull)"/>
-      <rect x="-110" y="-72" width="220" height="144" rx="40" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="2"/>
-      <path d="M-95 -60q95 -14 190 0" fill="none" stroke="#fff" stroke-width="3" opacity=".6"/>
-      <g fill="#2a3240" opacity=".55"><rect x="-96" y="-30" width="4" height="60" rx="2"/><rect x="92" y="-30" width="4" height="60" rx="2"/></g>
-      <text x="0" y="64" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="18" fill="#2a3346" opacity=".85">AUGUSTAS-4</text>
-      <!-- porthole shadow + lab -->
-      <circle r="50" fill="#000" opacity=".35" filter="url(#blur6)"/>
-      <circle r="48" fill="#0b1c25"/>
-      <g clip-path="url(#portholeClip)">
-        <g id="lab" transform="scale(0.0714286)">
-          <rect x="-600" y="-600" width="1200" height="1200" fill="url(#wall)"/>
-          <!-- wall panels -->
-          <g stroke="#0a2a36" stroke-width="4" fill="none" opacity=".7">
-            <path d="M-600 -300H600M-600 -60H600M-300 -600V150M300 -600V150"/>
-          </g>
-          <rect x="-520" y="-430" width="1040" height="18" fill="#2a7a90"/>
-          <rect x="-520" y="-430" width="1040" height="5" fill="#9fe8ff" opacity=".8"/>
-          <!-- ceiling light cone -->
-          <rect x="-600" y="-600" width="1200" height="800" fill="url(#spot)"/>
-          <!-- monitor -->
-          <rect x="222" y="-338" width="276" height="186" rx="18" fill="#0a1c25"/>
-          <rect x="230" y="-330" width="260" height="170" rx="14" fill="url(#screenG)" stroke="#2f7b93" stroke-width="3"/>
-          <path d="M250 -240h50l20 -40 25 80 25 -60 15 20h85" fill="none" stroke="#7dff6a" stroke-width="6" filter="url(#vialGlow)"/>
-          <text x="360" y="-185" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="36" fill="#ffd23f">4</text>
-          <rect x="230" y="-330" width="260" height="60" rx="14" fill="#fff" opacity=".06"/>
-          <!-- shelf with bottles -->
-          <rect x="-500" y="-210" width="290" height="12" fill="url(#steel)"/>
-          <rect x="-500" y="-198" width="290" height="14" fill="#000" opacity=".35" filter="url(#blur6)"/>
-          <g>
-            <rect x="-470" y="-270" width="34" height="60" rx="8" fill="#ff6b9a"/><rect x="-470" y="-270" width="34" height="60" rx="8" fill="url(#glassH)"/>
-            <rect x="-420" y="-285" width="30" height="75" rx="8" fill="#6fd3ff"/><rect x="-420" y="-285" width="30" height="75" rx="8" fill="url(#glassH)"/>
-            <rect x="-375" y="-260" width="40" height="50" rx="10" fill="#ffd23f"/><rect x="-375" y="-260" width="40" height="50" rx="10" fill="url(#glassH)"/>
-            <rect x="-320" y="-280" width="28" height="70" rx="8" fill="#b28cff"/><rect x="-320" y="-280" width="28" height="70" rx="8" fill="url(#glassH)"/>
-          </g>
-          <!-- floor -->
-          <rect x="-600" y="150" width="1200" height="450" fill="url(#floor)"/>
-          <path d="M-600 150H600" stroke="#ffd23f" stroke-width="14" stroke-dasharray="40 40"/>
-          <path d="M-600 150H600" stroke="#fff" stroke-width="2" opacity=".35"/>
-          <!-- floor reflection of the kid -->
-          <g transform="translate(0 330) scale(1 -1) translate(0 -30)" opacity=".18" filter="url(#blur6)">
-            <use href="#kidBody"/>
-          </g>
-          <!-- bench with flasks -->
-          <rect x="-470" y="30" width="250" height="18" rx="6" fill="url(#steel)"/>
-          <rect x="-455" y="48" width="18" height="102" fill="url(#tank)"/>
-          <rect x="-253" y="48" width="18" height="102" fill="url(#tank)"/>
-          <ellipse cx="-345" cy="150" rx="140" ry="10" fill="#000" opacity=".4" filter="url(#blur6)"/>
-          <g>
-            <path d="M-430 30v-40h-12v-8h44v8h-12v40z" fill="#9de9ff" opacity=".85"/>
-            <path d="M-430 30v-40h-12v-8h44v8h-12v40z" fill="url(#glassH)"/>
-            <path d="M-360 30l26 -60v-22h-12v-8h44v8h-12v22l26 60z" fill="#ff8fb8" opacity=".85"/>
-            <path d="M-360 30l26 -60v-22h-12v-8h44v8h-12v22l26 60z" fill="url(#glassH)"/>
-            <circle cx="-270" cy="10" r="20" fill="#b28cff" opacity=".9"/>
-            <circle cx="-270" cy="10" r="20" fill="url(#visorGlass)"/>
-            <rect x="-277" y="-30" width="14" height="22" fill="#b28cff" opacity=".9"/>
-          </g>
-          <!-- right console -->
-          <rect x="250" y="20" width="220" height="130" rx="12" fill="#1b4a5c"/>
-          <rect x="250" y="20" width="220" height="130" rx="12" fill="url(#suitTop)" opacity=".5"/>
-          <circle cx="300" cy="65" r="16" fill="#ff5b5b" class="blink" filter="url(#vialGlow)"/>
-          <circle cx="350" cy="65" r="16" fill="#7dff6a" filter="url(#vialGlow)"/>
-          <circle cx="400" cy="65" r="16" fill="#ffd23f" filter="url(#vialGlow)"/>
-          <rect x="285" y="105" width="150" height="16" rx="8" fill="#0b2b38"/>
-          <rect x="285" y="105" width="90" height="16" rx="8" fill="#7dff6a" opacity=".6"/>
-          <!-- vignette -->
-          <rect x="-600" y="-600" width="1200" height="1200" fill="url(#vignette)"/>
-
-          <rect id="labFrame" x="-200" y="-215" width="400" height="420" fill="none"/>
-
-          <!-- AUGUSTAS in his hazmat suit -->
-          <g id="kid" transform="translate(0 -30)">
-            <ellipse cy="196" rx="120" ry="16" fill="#000" opacity=".5" filter="url(#blur6)"/>
-            <g id="kidBody">
-              <!-- tank -->
-              <rect x="-128" y="-70" width="40" height="150" rx="16" fill="url(#tank)"/>
-              <rect x="-124" y="-62" width="8" height="134" rx="4" fill="#fff" opacity=".25"/>
-              <!-- legs -->
-              <rect x="-62" y="120" width="52" height="60" rx="14" fill="url(#limb)"/>
-              <rect x="10" y="120" width="52" height="60" rx="14" fill="url(#limb)"/>
-              <rect x="-68" y="168" width="64" height="28" rx="12" fill="url(#rubber)"/>
-              <rect x="4" y="168" width="64" height="28" rx="12" fill="url(#rubber)"/>
-              <!-- body -->
-              <g filter="url(#fabric)">
-                <rect x="-100" y="-170" width="200" height="310" rx="96" fill="url(#suitBody)"/>
-              </g>
-              <rect x="-100" y="-170" width="200" height="310" rx="96" fill="url(#suitTop)"/>
-              <g clip-path="url(#bodyClip)" fill="none" stroke="#6b4a00" stroke-opacity=".35" stroke-width="2">
-                <path d="M-100 -20q100 28 200 0M-100 95q100 28 200 0"/>
-                <path d="M-100 -14q100 28 200 0M-100 101q100 28 200 0" stroke="#fff" stroke-opacity=".25"/>
-                <path d="M0 -10V120" stroke-dasharray="4 6"/>
-              </g>
-              <!-- zipper -->
-              <rect x="-3" y="-10" width="6" height="130" rx="3" fill="#8a6300" opacity=".6"/>
-              <!-- left arm resting -->
-              <rect x="-128" y="-10" width="42" height="120" rx="20" fill="url(#limb)"/>
-              <rect x="-128" y="-10" width="42" height="120" rx="20" fill="url(#suitTop)"/>
-              <circle cx="-107" cy="114" r="20" fill="url(#rubber)"/>
-              <!-- chest patch -->
-              <rect x="-38" y="40" width="76" height="44" rx="10" fill="#f7f7f2"/>
-              <rect x="-38" y="40" width="76" height="44" rx="10" fill="url(#suitTop)" opacity=".5"/>
-              <text x="0" y="74" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="32" fill="#2b2b33">A·4</text>
-            </g>
-            <!-- visor: inner shadow, photo, glass -->
-            <ellipse cx="0" cy="-80" rx="62" ry="56" fill="#1a1d24"/>
-            <g id="face" clip-path="url(#visorClip)">
-              <g id="cartoonFace">
-                <ellipse cx="0" cy="-80" rx="62" ry="56" fill="#ffd9b8"/>
-                <path d="M-62 -100c10-40 40-40 62-30 22-10 52-10 62 30v-40h-124z" fill="#8a5a2b"/>
-                <circle cx="-20" cy="-82" r="7" fill="#2b2b33"/>
-                <circle cx="20" cy="-82" r="7" fill="#2b2b33"/>
-                <path d="M-18 -56q18 16 36 0" fill="none" stroke="#2b2b33" stroke-width="5" stroke-linecap="round"/>
-              </g>
-              <image id="photo" href="augustas.jpg" x="-62" y="-136" width="124" height="112" preserveAspectRatio="xMidYMid slice"/>
-              <!-- inner shade from the helmet rim -->
-              <ellipse cx="0" cy="-80" rx="62" ry="56" fill="none" stroke="#000" stroke-width="18" opacity=".55" filter="url(#innerShade)"/>
-              <!-- glass -->
-              <ellipse cx="0" cy="-80" rx="62" ry="56" fill="url(#visorGlass)"/>
-              <path d="M-50 -112q22 -26 54 -22" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".55"/>
-              <path d="M-54 -98q6 -10 14 -16" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".45"/>
-              <!-- green reflection from the vial -->
-              <ellipse cx="44" cy="-60" rx="14" ry="26" fill="#7dff6a" opacity=".12"/>
-            </g>
-            <ellipse id="visor" cx="0" cy="-80" rx="62" ry="56" fill="none" stroke="url(#visorRing)" stroke-width="11"/>
-            <ellipse cx="0" cy="-80" rx="67" ry="61" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="2"/>
-            <ellipse cx="0" cy="-80" rx="57" ry="51" fill="none" stroke="#fff" stroke-opacity=".25" stroke-width="1.5"/>
-            <!-- right arm raised, holding the vial -->
-            <path d="M80 0q60 -20 70 -80" fill="none" stroke="#8a6000" stroke-width="44" stroke-linecap="round"/>
-            <path d="M80 0q60 -20 70 -80" fill="none" stroke="url(#limbV)" stroke-width="40" stroke-linecap="round"/>
-            <path d="M78 -6q50 -18 60 -70" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".25"/>
-            <circle cx="160" cy="-120" r="80" fill="url(#glowGrad)" class="halo"/>
-            <g filter="url(#vialGlow)">
-              <rect x="151" y="-135" width="18" height="40" rx="9" fill="url(#liquid)"/>
-            </g>
-            <rect x="148" y="-170" width="24" height="78" rx="12" fill="#e9fbff" opacity=".35"/>
-            <rect x="148" y="-170" width="24" height="78" rx="12" fill="url(#glassH)"/>
-            <rect x="151" y="-166" width="4" height="60" rx="2" fill="#fff" opacity=".7"/>
-            <rect x="144" y="-176" width="32" height="12" rx="4" fill="#ff6b9a"/>
-            <rect x="144" y="-176" width="32" height="5" rx="2" fill="#fff" opacity=".4"/>
-            <g fill="#e8ffd9">
-              <circle class="bubble" cx="160" cy="-108" r="4"/>
-              <circle class="bubble" cx="156" cy="-112" r="3"/>
-              <circle class="bubble" cx="164" cy="-110" r="3.5"/>
-            </g>
-            <circle cx="152" cy="-86" r="22" fill="url(#rubber)"/>
-            <path d="M140 -96q6 -10 18 -10" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".3"/>
-          </g>
-        </g>
-      </g>
-      <!-- porthole ring -->
-      <circle r="44" fill="none" stroke="url(#ring)" stroke-width="10"/>
-      <circle r="49" fill="none" stroke="#000" stroke-opacity=".4" stroke-width="1.5"/>
-      <circle r="39" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.5"/>
-      <g fill="#3b4452"><circle cx="0" cy="-44" r="2.5"/><circle cx="0" cy="44" r="2.5"/><circle cx="-44" cy="0" r="2.5"/><circle cx="44" cy="0" r="2.5"/></g>
-      <!-- glass sheen over the porthole -->
-      <circle r="40" fill="url(#visorGlass)" opacity=".7"/>
-    </g>
-  </g>
-</svg>
 <div id="caption" class="ui" aria-live="polite"></div>
-<button id="skip" class="ui" type="button">Praleisti ›</button>
+<button id="mute" class="pill" type="button" aria-label="Garsas">🔊</button>
+<button id="skip" class="pill" type="button">Praleisti ›</button>
 
 <main id="card" class="ui">
   <p class="kicker">Slapta misija</p>
@@ -538,7 +185,7 @@
     <dt>🕞</dt><dd>15:30–17:30</dd>
     <dt>📍</dt><dd><a href="https://maps.google.com/?q=Adventica+Ozas+Vilnius" target="_blank" rel="noopener">Adventica</a><small>PPC „Ozas“, Ozo g. 18, Vilnius</small></dd>
   </dl>
-  <a id="rsvp" class="btn" href="#" target="_blank" rel="noopener">Registruotis į misiją 🚀</a>
+  <a id="rsvp" class="btn" href="https://docs.google.com/forms/d/e/1FAIpQLSfQuXd5n53CDdW_Y2fgDekG2L9xMturlLt8Hlfe0-Muuxq6YA/viewform" target="_blank" rel="noopener">Registruotis į misiją 🚀</a>
   <p class="due">Prašome užsiregistruoti iki <b>spalio 22 d.</b> (ketvirtadienio).</p>
   <div class="row">
     <a class="ghost" href="augustas-4.ics" download>📆 Į kalendorių</a>
@@ -547,143 +194,208 @@
 </main>
 
 <script>
-  // Paste the Google Form link here (the "Send → link" URL).
-  const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfQuXd5n53CDdW_Y2fgDekG2L9xMturlLt8Hlfe0-Muuxq6YA/viewform";
+(() => {
+  // ---------- world geometry ----------
+  // World units: Earth radius = 300 at the origin. The station is a 0.25-scaled
+  // group at (180,-156); the lab (and suit/face) live inside it at a further 1/14.
+  const ST = { ox: 180, oy: -156, s: 0.25 };
+  const LB = { ox: 180, oy: -156, s: 0.25 / 14 };
+  // Each layer: image placed so that its local (lx0, ly0) is the top-left, R px per local unit.
+  const layers = [
+    { el: "stars",   ox: 0, oy: 0, s: 1,     lx0: -2000, ly0: -2000, R: 0.5 },
+    { el: "earth",   ox: 0, oy: 0, s: 1,     lx0: -350,  ly0: -350,  R: 2 },
+    { el: "orbit",   ox: 0, oy: 0, s: 1,     lx0: -500,  ly0: -500,  R: 1 },
+    { el: "lab",     ...LB,                  lx0: -560,  ly0: -560,  R: 2.5 },
+    { el: "glow",    ...LB,                  lx0: 80,    ly0: -230,  R: 1 },
+    { el: "kid",     ...LB,                  lx0: -140,  ly0: -240,  R: 4 },
+    { el: "face",    ...LB,                  lx0: -75,   ly0: -185,  R: 6 },
+    { el: "visor",   ...LB,                  lx0: -75,   ly0: -185,  R: 6 },
+    { el: "station", ...ST,                  lx0: -400,  ly0: -140,  R: 3 },
+    { el: "beacon",  ...ST,                  lx0: -9,    ly0: -125,  R: 1 },
+  ];
+  for (const L of layers) L.node = document.getElementById(L.el);
 
-  const rsvp = document.getElementById("rsvp");
-  if (FORM_URL) rsvp.href = FORM_URL;
-  else { rsvp.setAttribute("aria-disabled", "true"); rsvp.removeAttribute("target"); rsvp.onclick = e => { e.preventDefault(); alert("Registracijos nuoroda netrukus!"); }; }
+  // Frames (world coords) the camera fits to.
+  const w = (g, x, y, ww, hh) => ({ x: g.ox + g.s * x, y: g.oy + g.s * y, w: g.s * ww, h: g.s * hh });
+  const F = {
+    visor: w(LB, -62, -166, 124, 112),
+    lab: w(LB, -200, -215, 400, 420),
+    station: w(ST, -400, -130, 800, 260),
+    earth: { x: -450, y: -320, w: 900, h: 640 },
+  };
 
-  // Show the cartoon face only if the photo is missing.
-  const probe = new Image();
-  probe.onload = () => document.getElementById("cartoonFace").style.display = "none";
-  probe.onerror = () => document.getElementById("photo").remove();
-  probe.src = "augustas.jpg";
-
-  const svg = document.getElementById("world");
-  const root = document.getElementById("root");
-
-  // Starfield: a wide sparse field plus a denser patch around the station.
-  (function stars() {
-    let seed = 4;
-    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-    const g = document.getElementById("stars");
-    const add = (cx, cy, r, tw) => {
-      const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-      c.setAttribute("cx", cx.toFixed(2)); c.setAttribute("cy", cy.toFixed(2));
-      c.setAttribute("r", r.toFixed(2));
-      c.setAttribute("fill", ["#fff", "#fff", "#fff", "#cfe0ff", "#ffe9c9"][Math.floor(rnd() * 5)]);
-      c.setAttribute("opacity", (0.45 + rnd() * 0.55).toFixed(2));
-      if (tw) { c.setAttribute("class", "tw"); c.style.animationDelay = (rnd() * 2.4).toFixed(2) + "s"; }
-      g.appendChild(c);
-    };
-    for (let i = 0; i < 420; i++) add((rnd() - .5) * 6000, (rnd() - .5) * 6000, .8 + rnd() * 2.4, i % 10 === 0);
-    for (let i = 0; i < 80; i++) add(180 + (rnd() - .5) * 400, -156 + (rnd() - .5) * 400, .25 + rnd() * .7, false);
-  })();
-
-  // Bounding box of an element in root (world) coordinates.
-  function box(id) {
-    const el = document.getElementById(id);
-    const b = el.getBBox();
-    const m = root.getScreenCTM().inverse().multiply(el.getScreenCTM());
-    const pts = [[b.x, b.y], [b.x + b.width, b.y], [b.x, b.y + b.height], [b.x + b.width, b.y + b.height]]
-      .map(([x, y]) => [m.a * x + m.c * y + m.e, m.b * x + m.d * y + m.f]);
-    const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
-    const x = Math.min(...xs), y = Math.min(...ys);
-    return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y };
+  // A view = top-left world point + k world units per CSS pixel.
+  let W, H, views;
+  const fit = (b, pad) => { const k = Math.max(b.w / W, b.h / H) * pad; return { x: b.x + b.w / 2 - W * k / 2, y: b.y + b.h / 2 - H * k / 2, k }; };
+  function faceView() {
+    // largest W:H rectangle inscribed in the visor ellipse, so the helmet is off-screen at first
+    const rx = F.visor.w / 2, ry = F.visor.h / 2, cx = F.visor.x + rx, cy = F.visor.y + ry;
+    const a = H / W;  // height per width
+    const ww = 1 / Math.sqrt(1 / (4 * rx * rx) + (a * a) / (4 * ry * ry));
+    const k = ww / W * 1.02;
+    return { x: cx - W * k / 2, y: cy - H * k / 2, k };
   }
-
-  // A view is the top-left corner (x, y) plus k = world units per screen pixel.
-  function fit(id, pad, W, H) {
-    const b = box(id);
-    const k = Math.max(b.w / W, b.h / H) * pad;
-    return { x: b.x + b.w / 2 - W * k / 2, y: b.y + b.h / 2 - H * k / 2, k };
-  }
-  function finalView(W, H) {
-    const b = box("earthFrame");
-    const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
-    if (W >= H) {
-      const k = Math.max(b.w / (W * .55), b.h / (H * .9));
-      return { x: cx - W * .3 * k, y: cy - H * .5 * k, k };
-    }
+  function finalView() {
+    const b = F.earth, cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+    if (W >= H) { const k = Math.max(b.w / (W * .55), b.h / (H * .9)); return { x: cx - W * .3 * k, y: cy - H * .5 * k, k }; }
     const k = Math.max(b.w / W, b.h / (H * .5)) * 1.02;
     return { x: cx - W * .5 * k, y: cy - H * .27 * k, k };
   }
-
-  let views, W, H;
   function measure() {
     W = innerWidth; H = innerHeight;
-    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);  // reset so CTMs are sane
-    views = {
-      face: fit("visor", 1.12, W, H),
-      lab: fit("labFrame", 1.0, W, H),
-      station: fit("stationFrame", 1.15, W, H),
-      end: finalView(W, H),
-    };
+    views = { face: faceView(), helmet: fit(F.visor, 1.35), lab: fit(F.lab, 1.0), station: fit(F.station, 1.15), end: finalView() };
   }
-  function show(v) { svg.setAttribute("viewBox", `${v.x} ${v.y} ${W * v.k} ${H * v.k}`); }
-
-  // Zoom about the single fixed point that maps view a onto view b.
+  function render(v) {
+    for (const L of layers) {
+      const tx = (L.ox + L.s * L.lx0 - v.x) / v.k;
+      const ty = (L.oy + L.s * L.ly0 - v.y) / v.k;
+      const sc = L.s / (v.k * L.R);
+      L.node.style.transform = `translate3d(${tx.toFixed(3)}px,${ty.toFixed(3)}px,0) scale(${sc.toPrecision(6)})`;
+    }
+  }
+  // Zoom about the single fixed point that maps view a onto view b (exponential in scale).
   function between(a, b, u) {
     const k = a.k * Math.pow(b.k / a.k, u);
+    if (Math.abs(a.k - b.k) < 1e-9) return { x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u, k };
     const px = (b.x * a.k - a.x * b.k) / (a.k - b.k);
     const py = (b.y * a.k - a.y * b.k) / (a.k - b.k);
     return { x: px + (a.x - px) * k / a.k, y: py + (a.y - py) * k / a.k, k };
   }
   const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
+  // ---------- sequence ----------
   const steps = [
-    { hold: "face", dur: 1600, text: "Čia – Augustas." },
-    { from: "face", to: "lab", dur: 2300, text: "Jis dirba slaptoje laboratorijoje…" },
-    { hold: "lab", dur: 1300, text: "Jis dirba slaptoje laboratorijoje…" },
-    { from: "lab", to: "station", dur: 2700, text: "…kuri yra kosminėje stotyje…" },
-    { hold: "station", dur: 900, text: "…kuri yra kosminėje stotyje…" },
-    { from: "station", to: "end", dur: 2600, text: "…skriejančioje aplink Žemę!" },
+    { hold: "face",                      dur: 1500, text: "Čia – Augustas.", sfx: "hum" },
+    { from: "face",    to: "helmet",     dur: 1600, text: "Čia – Augustas.", visor: true, sfx: "whoosh" },
+    { from: "helmet",  to: "lab",        dur: 2200, text: "Jis dirba slaptoje laboratorijoje…", sfx: "whoosh" },
+    { hold: "lab",                       dur: 1400, text: "Jis dirba slaptoje laboratorijoje…", sfx: "bleeps" },
+    { from: "lab",     to: "station",    dur: 2600, text: "…kuri yra kosminėje stotyje…", sfx: "whoosh" },
+    { hold: "station",                   dur: 900,  text: "…kuri yra kosminėje stotyje…" },
+    { from: "station", to: "end",        dur: 2600, text: "…skriejančioje aplink Žemę!", sfx: "whoosh" },
   ];
-  const total = steps.reduce((s, x) => s + x.dur, 0);
   const caption = document.getElementById("caption");
+  const visorEl = document.getElementById("visor");
+  let start = 0, raf = 0, lastText = "", stepIdx = -1;
 
-  let start = 0, raf = 0, lastText = "";
   function frame(now) {
-    let t = now - start;
-    if (t >= total) return finish();
-    for (const s of steps) {
-      if (t < s.dur) {
-        show(s.hold ? views[s.hold] : between(views[s.from], views[s.to], ease(t / s.dur)));
-        if (s.text !== lastText) {
-          caption.classList.remove("on");
-          lastText = s.text;
-          setTimeout(() => { caption.textContent = s.text; caption.classList.add("on"); }, lastText === steps[0].text ? 0 : 250);
-        }
-        break;
-      }
-      t -= s.dur;
+    let t = now - start, i = 0;
+    for (; i < steps.length; i++) { if (t < steps[i].dur) break; t -= steps[i].dur; }
+    if (i >= steps.length) return finish();
+    const s = steps[i];
+    if (i !== stepIdx) { stepIdx = i; if (s.sfx) sfx[s.sfx](s.dur); }
+    render(s.hold ? views[s.hold] : between(views[s.from], views[s.to], ease(t / s.dur)));
+    if (s.visor) visorEl.style.opacity = Math.min(1, t / s.dur * 1.6).toFixed(3);
+    if (s.text !== lastText) {
+      lastText = s.text;
+      caption.classList.remove("on");
+      setTimeout(() => { caption.textContent = s.text; caption.classList.add("on"); }, i === 0 ? 150 : 250);
     }
     raf = requestAnimationFrame(frame);
   }
   function finish() {
     cancelAnimationFrame(raf); raf = 0;
-    show(views.end);
-    document.body.classList.add("done");
+    visorEl.style.opacity = 1;
+    render(views.end);
+    if (!document.body.classList.contains("done")) { document.body.classList.add("done"); sfx.chime(); }
   }
   function play() {
+    document.body.classList.add("started");
     document.body.classList.remove("done");
     scrollTo(0, 0);
-    lastText = ""; caption.classList.remove("on");
-    measure(); show(views.face);
+    lastText = ""; stepIdx = -1; caption.classList.remove("on");
+    visorEl.style.opacity = 0;
+    measure(); render(views.face);
     start = performance.now();
     raf = requestAnimationFrame(frame);
   }
+  addEventListener("resize", () => { measure(); if (!raf) render(views.end); });
 
-  addEventListener("resize", () => {
-    measure();
-    if (!raf) show(views.end);
-  });
+  // ---------- sound (synthesised, quiet) ----------
+  let ac = null, master = null, muted = false, humNode = null;
+  function audio() {
+    if (ac) return ac;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    ac = new AC();
+    master = ac.createGain(); master.gain.value = muted ? 0 : 0.5; master.connect(ac.destination);
+    return ac;
+  }
+  function noise(seconds) {
+    const buf = ac.createBuffer(1, Math.ceil(ac.sampleRate * seconds), ac.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    const src = ac.createBufferSource(); src.buffer = buf; return src;
+  }
+  const sfx = {
+    hum() {
+      if (!audio() || humNode) return;
+      const t = ac.currentTime;
+      const o = ac.createOscillator(); o.type = "sine"; o.frequency.value = 52;
+      const o2 = ac.createOscillator(); o2.type = "triangle"; o2.frequency.value = 104.5;
+      const n = noise(4); n.loop = true;
+      const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 320;
+      const g = ac.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.16, t + 2);
+      const g2 = ac.createGain(); g2.gain.value = 0.05;
+      o.connect(g); o2.connect(g2).connect(g); n.connect(lp).connect(g2); g.connect(master);
+      o.start(); o2.start(); n.start();
+      humNode = g;
+    },
+    whoosh(ms) {
+      if (!audio()) return;
+      const t = ac.currentTime, d = ms / 1000;
+      const n = noise(d + 0.3);
+      const bp = ac.createBiquadFilter(); bp.type = "bandpass"; bp.Q.value = 0.8;
+      bp.frequency.setValueAtTime(180, t); bp.frequency.exponentialRampToValueAtTime(1600, t + d * 0.6); bp.frequency.exponentialRampToValueAtTime(240, t + d);
+      const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.22, t + d * 0.45); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      n.connect(bp).connect(g).connect(master); n.start(t); n.stop(t + d + 0.3);
+    },
+    bleeps(ms) {
+      if (!audio()) return;
+      const t = ac.currentTime;
+      [[0, 880], [0.22, 1175], [0.5, 988], [0.95, 1320]].forEach(([dt, f]) => {
+        const o = ac.createOscillator(); o.type = "sine"; o.frequency.value = f;
+        const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t + dt);
+        g.gain.exponentialRampToValueAtTime(0.09, t + dt + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + dt + 0.18);
+        o.connect(g).connect(master); o.start(t + dt); o.stop(t + dt + 0.2);
+      });
+      // bubbling
+      for (let i = 0; i < 7; i++) {
+        const dt = 0.1 + Math.random() * (ms / 1000 - 0.3);
+        const o = ac.createOscillator(); o.type = "sine";
+        o.frequency.setValueAtTime(300 + Math.random() * 200, t + dt); o.frequency.exponentialRampToValueAtTime(900 + Math.random() * 400, t + dt + 0.08);
+        const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t + dt);
+        g.gain.exponentialRampToValueAtTime(0.05, t + dt + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dt + 0.09);
+        o.connect(g).connect(master); o.start(t + dt); o.stop(t + dt + 0.1);
+      }
+    },
+    chime() {
+      if (!audio()) return;
+      const t = ac.currentTime;
+      [[0, 523.25], [0.18, 659.25], [0.36, 783.99], [0.6, 1046.5]].forEach(([dt, f]) => {
+        const o = ac.createOscillator(); o.type = "triangle"; o.frequency.value = f;
+        const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t + dt);
+        g.gain.exponentialRampToValueAtTime(0.16, t + dt + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, t + dt + 1.4);
+        o.connect(g).connect(master); o.start(t + dt); o.stop(t + dt + 1.5);
+      });
+      if (humNode) { humNode.gain.linearRampToValueAtTime(0.06, t + 2); }
+    },
+  };
+  const muteBtn = document.getElementById("mute");
+  muteBtn.onclick = () => {
+    muted = !muted; muteBtn.textContent = muted ? "🔇" : "🔊";
+    if (master) master.gain.linearRampToValueAtTime(muted ? 0 : 0.5, ac.currentTime + 0.15);
+  };
+
+  // ---------- controls ----------
+  document.getElementById("play").onclick = () => { audio(); if (ac && ac.state === "suspended") ac.resume(); play(); };
   document.getElementById("skip").onclick = finish;
-  document.getElementById("replay").onclick = play;
-
-  if (matchMedia("(prefers-reduced-motion: reduce)").matches) { measure(); finish(); }
-  else play();
+  document.getElementById("replay").onclick = () => { if (ac && ac.state === "suspended") ac.resume(); play(); };
+  measure(); render(views.face);
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    document.getElementById("play").onclick = () => { document.body.classList.add("started"); finish(); };
+  }
+})();
 </script>
 </body>
 </html>

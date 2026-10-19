@@ -1,0 +1,233 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-400 -140 800 280" width="2400" height="840">
+  <defs>
+    <!-- lighting: sun upper-left, slightly in front -->
+    <linearGradient id="cyl" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".12" stop-color="#eef2f7"/>
+      <stop offset=".45" stop-color="#b9c2d0"/>
+      <stop offset=".75" stop-color="#6b7587"/>
+      <stop offset=".93" stop-color="#3a4150"/>
+      <stop offset="1" stop-color="#4b5567"/>
+    </linearGradient>
+    <linearGradient id="cylGold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff3d2"/>
+      <stop offset=".15" stop-color="#f1cf7a"/>
+      <stop offset=".5" stop-color="#b98a2e"/>
+      <stop offset=".8" stop-color="#5e4210"/>
+      <stop offset="1" stop-color="#3a2a0c"/>
+    </linearGradient>
+    <linearGradient id="earthshine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset=".6" stop-color="#3b7bd6" stop-opacity="0"/>
+      <stop offset="1" stop-color="#3b7bd6" stop-opacity=".35"/>
+    </linearGradient>
+    <linearGradient id="trussG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e9edf3"/>
+      <stop offset=".5" stop-color="#9aa3b3"/>
+      <stop offset="1" stop-color="#3d4452"/>
+    </linearGradient>
+    <linearGradient id="radiator" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f3f5f8"/>
+      <stop offset=".5" stop-color="#d4d9e1"/>
+      <stop offset="1" stop-color="#9aa2b0"/>
+    </linearGradient>
+    <linearGradient id="arrayDepth" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".25"/>
+      <stop offset=".5" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000" stop-opacity=".45"/>
+    </linearGradient>
+    <pattern id="cells" width="12" height="14" patternUnits="userSpaceOnUse">
+      <rect width="12" height="14" fill="#101b3a"/>
+      <rect x=".8" y=".8" width="10.4" height="12.4" fill="#1a2f66"/>
+      <rect x=".8" y=".8" width="10.4" height="4" fill="#2a4a8f" opacity=".6"/>
+      <path d="M.8 .8L11.2 13.2" stroke="#6f93d8" stroke-width=".5" opacity=".5"/>
+    </pattern>
+    <radialGradient id="arrayGlare" cx="22%" cy="20%" r="70%">
+      <stop offset="0" stop-color="#cfe0ff" stop-opacity=".55"/>
+      <stop offset=".5" stop-color="#cfe0ff" stop-opacity=".05"/>
+      <stop offset="1" stop-color="#000" stop-opacity=".25"/>
+    </radialGradient>
+    <linearGradient id="bezel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fafbfd"/>
+      <stop offset=".3" stop-color="#aab3c2"/>
+      <stop offset=".65" stop-color="#333a47"/>
+      <stop offset="1" stop-color="#cdd5e0"/>
+    </linearGradient>
+    <radialGradient id="glass" cx="30%" cy="22%" r="80%">
+      <stop offset="0" stop-color="#fff" stop-opacity=".4"/>
+      <stop offset=".35" stop-color="#fff" stop-opacity=".04"/>
+      <stop offset="1" stop-color="#0a2a3a" stop-opacity=".35"/>
+    </radialGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3"/></filter>
+    <filter id="soft8" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="8"/></filter>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- wrinkled multi-layer insulation foil -->
+    <filter id="foil" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".08 .18" numOctaves="3" seed="11" result="n"/>
+      <feDiffuseLighting in="n" lighting-color="#fff" surfaceScale="3" diffuseConstant="1.1" result="lit">
+        <feDistantLight azimuth="225" elevation="48"/>
+      </feDiffuseLighting>
+      <feComposite in="lit" in2="SourceGraphic" operator="arithmetic" k1="1" k2="0" k3="0" k4="0" result="m"/>
+      <feComposite in="m" in2="SourceGraphic" operator="in"/>
+    </filter>
+    <!-- brushed metal micro-texture -->
+    <filter id="brushed" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".9 .04" numOctaves="2" seed="3" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .18 -.04" result="g"/>
+      <feComposite in="g" in2="SourceGraphic" operator="in" result="gi"/>
+      <feBlend in="SourceGraphic" in2="gi" mode="multiply"/>
+    </filter>
+    <!-- specular sheen for cylinders -->
+    <filter id="spec" x="-5%" y="-5%" width="110%" height="110%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="b"/>
+      <feSpecularLighting in="b" surfaceScale="6" specularConstant=".9" specularExponent="24" lighting-color="#fff" result="s">
+        <feDistantLight azimuth="235" elevation="55"/>
+      </feSpecularLighting>
+      <feComposite in="s" in2="SourceAlpha" operator="in" result="si"/>
+      <feComposite in="SourceGraphic" in2="si" operator="arithmetic" k1="0" k2="1" k3=".7" k4="0"/>
+    </filter>
+    <mask id="hole">
+      <rect x="-400" y="-140" width="800" height="280" fill="#fff"/>
+      <circle r="41" fill="#000"/>
+    </mask>
+    <g id="arrayWing">
+      <!-- one solar wing: two blankets on a mast, slight perspective -->
+      <rect x="0" y="-78" width="180" height="70" fill="url(#cells)" transform="skewY(-2)"/>
+      <rect x="0" y="8" width="180" height="70" fill="url(#cells)" transform="skewY(-2)"/>
+      <rect x="0" y="-78" width="180" height="70" fill="url(#arrayGlare)" transform="skewY(-2)"/>
+      <rect x="0" y="8" width="180" height="70" fill="url(#arrayGlare)" transform="skewY(-2)"/>
+      <rect x="0" y="-78" width="180" height="70" fill="url(#arrayDepth)" transform="skewY(-2)"/>
+      <rect x="0" y="8" width="180" height="70" fill="url(#arrayDepth)" transform="skewY(-2)"/>
+      <g fill="none" stroke="#d9dee8" stroke-width="1.6" transform="skewY(-2)">
+        <rect x="0" y="-78" width="180" height="70"/><rect x="0" y="8" width="180" height="70"/>
+        <path d="M60 -78v70M120 -78v70M60 8v70M120 8v70" stroke-opacity=".5"/>
+      </g>
+      <!-- mast -->
+      <rect x="0" y="-4" width="180" height="8" fill="url(#trussG)"/>
+      <g stroke="#2a3140" stroke-width="1" opacity=".6"><path d="M10 -4l8 8M26 -4l8 8M42 -4l8 8M58 -4l8 8M74 -4l8 8M90 -4l8 8M106 -4l8 8M122 -4l8 8M138 -4l8 8M154 -4l8 8M170 -4l8 8"/></g>
+    </g>
+  </defs>
+
+  <g mask="url(#hole)">
+    <!-- shadows cast on the truss by the arrays -->
+    <rect x="-390" y="-10" width="180" height="20" fill="#000" opacity=".35" filter="url(#soft8)"/>
+    <rect x="210" y="-10" width="180" height="20" fill="#000" opacity=".35" filter="url(#soft8)"/>
+    <!-- main truss: lattice -->
+    <rect x="-385" y="-14" width="770" height="28" fill="#000" opacity=".25" transform="translate(3 4)" filter="url(#soft)"/>
+    <rect x="-385" y="-14" width="770" height="28" rx="2" fill="#1d222c"/>
+    <g stroke="url(#trussG)" stroke-width="3" fill="none">
+      <path d="M-385 -13H385M-385 13H385"/>
+      <path d="M-385 -13l16 26l16 -26l16 26l16 -26l16 26l16 -26l16 26l16 -26l16 26l16 -26l16 26l16 -26l16 26l16 -26l16 26l16 -26l16 26l16 -26l16 26l16 -26l16 26l16 -26l16 26l16 -26l16 26l16 -26l16 26l16 -26l16 26l16 -26l16 26l16 -26l16 26l16 -26l16 26l16 -26l16 26l16 -26l16 26l16 -26l16 26l16 -26l16 26l16 -26l16 26l16 -26l16 26"/>
+    </g>
+    <g stroke="#fff" stroke-width="1" opacity=".5"><path d="M-385 -14H385"/></g>
+    <!-- radiators (white, hanging off the truss) -->
+    <g transform="translate(-290 14)">
+      <rect x="0" y="0" width="54" height="90" fill="#000" opacity=".35" transform="translate(3 4)" filter="url(#soft)"/>
+      <rect x="0" y="0" width="54" height="90" fill="url(#radiator)"/>
+      <g stroke="#9aa2b0" stroke-width="1" opacity=".7"><path d="M9 0v90M18 0v90M27 0v90M36 0v90M45 0v90"/></g>
+      <rect x="0" y="0" width="54" height="90" fill="none" stroke="#6b7482" stroke-width="1.5"/>
+    </g>
+    <g transform="translate(236 14)">
+      <rect x="0" y="0" width="54" height="90" fill="#000" opacity=".35" transform="translate(3 4)" filter="url(#soft)"/>
+      <rect x="0" y="0" width="54" height="90" fill="url(#radiator)"/>
+      <g stroke="#9aa2b0" stroke-width="1" opacity=".7"><path d="M9 0v90M18 0v90M27 0v90M36 0v90M45 0v90"/></g>
+      <rect x="0" y="0" width="54" height="90" fill="none" stroke="#6b7482" stroke-width="1.5"/>
+    </g>
+    <!-- solar wings -->
+    <use href="#arrayWing" transform="translate(-390 0)"/>
+    <use href="#arrayWing" transform="translate(210 0)"/>
+    <!-- rotary joints -->
+    <g filter="url(#spec)">
+      <circle cx="-205" cy="0" r="13" fill="url(#cyl)"/>
+      <circle cx="205" cy="0" r="13" fill="url(#cyl)"/>
+    </g>
+    <g fill="none" stroke="#2a3140" stroke-width="1.5" opacity=".6"><circle cx="-205" cy="0" r="8"/><circle cx="205" cy="0" r="8"/></g>
+
+    <!-- side modules: gold MLI foil -->
+    <g transform="translate(0 0)">
+      <rect x="-200" y="-40" width="92" height="80" rx="14" fill="#000" opacity=".45" transform="translate(4 6)" filter="url(#soft8)"/>
+      <rect x="108" y="-40" width="92" height="80" rx="14" fill="#000" opacity=".45" transform="translate(4 6)" filter="url(#soft8)"/>
+      <g filter="url(#foil)">
+        <rect x="-200" y="-42" width="92" height="84" rx="16" fill="url(#cylGold)"/>
+        <rect x="108" y="-42" width="92" height="84" rx="16" fill="url(#cylGold)"/>
+      </g>
+      <g filter="url(#spec)">
+        <rect x="-200" y="-42" width="92" height="84" rx="16" fill="none"/>
+      </g>
+      <rect x="-200" y="-42" width="92" height="84" rx="16" fill="url(#earthshine)"/>
+      <rect x="108" y="-42" width="92" height="84" rx="16" fill="url(#earthshine)"/>
+      <!-- straps / seams -->
+      <g stroke="#2b1e08" stroke-opacity=".55" stroke-width="2"><path d="M-178 -42v84M-152 -42v84M-126 -42v84M130 -42v84M156 -42v84M182 -42v84"/></g>
+      <g stroke="#ffe7a8" stroke-opacity=".5" stroke-width=".8"><path d="M-180 -42v84M-154 -42v84M-128 -42v84M128 -42v84M154 -42v84M180 -42v84"/></g>
+      <!-- ring couplings -->
+      <g filter="url(#brushed)">
+        <rect x="-112" y="-46" width="12" height="92" rx="3" fill="url(#cyl)"/>
+        <rect x="100" y="-46" width="12" height="92" rx="3" fill="url(#cyl)"/>
+        <rect x="-212" y="-30" width="14" height="60" rx="3" fill="url(#cyl)"/>
+        <rect x="198" y="-30" width="14" height="60" rx="3" fill="url(#cyl)"/>
+      </g>
+    </g>
+
+    <!-- antenna & beacon -->
+    <path d="M0 -72v-40" stroke="url(#trussG)" stroke-width="5"/>
+    <path d="M-1 -72v-40" stroke="#fff" stroke-width="1" opacity=".6"/>
+    <g fill="#9aa3b3"><rect x="-10" y="-114" width="20" height="3"/><rect x="-6" y="-104" width="12" height="3"/></g>
+    <circle cy="-116" r="7" fill="#a51818"/>
+    <circle cx="-2.5" cy="-118.5" r="2.5" fill="#ff9c9c" opacity=".8"/>
+    <!-- small dish -->
+    <g transform="translate(70 -72)">
+      <path d="M0 0v-14" stroke="#9aa3b3" stroke-width="3"/>
+      <ellipse cx="0" cy="-20" rx="16" ry="7" fill="url(#cyl)" transform="rotate(-20)"/>
+      <circle cx="0" cy="-20" r="2" fill="#2a3140"/>
+    </g>
+
+    <!-- main module: white hull with panel lines -->
+    <rect x="-112" y="-70" width="224" height="146" rx="42" fill="#000" opacity=".5" transform="translate(5 8)" filter="url(#soft8)"/>
+    <g filter="url(#brushed)">
+      <rect x="-110" y="-72" width="220" height="144" rx="40" fill="url(#cyl)"/>
+    </g>
+    <g filter="url(#spec)"><rect x="-110" y="-72" width="220" height="144" rx="40" fill="none"/></g>
+    <rect x="-110" y="-72" width="220" height="144" rx="40" fill="url(#earthshine)"/>
+    <!-- panel seams -->
+    <g fill="none" stroke="#000" stroke-opacity=".35" stroke-width="1.6">
+      <path d="M-70 -72v144M70 -72v144M-110 -24h220M-110 24h220"/>
+      <rect x="-60" y="-60" width="120" height="30" rx="4"/>
+      <rect x="-60" y="30" width="120" height="30" rx="4"/>
+    </g>
+    <g fill="none" stroke="#fff" stroke-opacity=".55" stroke-width=".8">
+      <path d="M-68 -72v144M72 -72v144M-110 -22h220M-110 26h220"/>
+    </g>
+    <!-- handrails and fixtures -->
+    <g stroke="#ffd34a" stroke-width="3" stroke-linecap="round" fill="none">
+      <path d="M-50 -48h30M20 -48h30M-50 50h30M20 50h30"/>
+    </g>
+    <g fill="#2a3140" opacity=".85">
+      <circle cx="-50" cy="-48" r="2"/><circle cx="-20" cy="-48" r="2"/><circle cx="20" cy="-48" r="2"/><circle cx="50" cy="-48" r="2"/>
+      <circle cx="-50" cy="50" r="2"/><circle cx="-20" cy="50" r="2"/><circle cx="20" cy="50" r="2"/><circle cx="50" cy="50" r="2"/>
+    </g>
+    <!-- rivets -->
+    <g fill="#5a6476">
+      <circle cx="-95" cy="-50" r="1.4"/><circle cx="-95" cy="0" r="1.4"/><circle cx="-95" cy="50" r="1.4"/>
+      <circle cx="95" cy="-50" r="1.4"/><circle cx="95" cy="0" r="1.4"/><circle cx="95" cy="50" r="1.4"/>
+    </g>
+    <!-- markings -->
+    <text x="0" y="66" text-anchor="middle" font-family="'Baloo 2', Arial, sans-serif" font-weight="800" font-size="14" fill="#1f2838" opacity=".85" letter-spacing="2">AUGUSTAS-4</text>
+    <g transform="translate(-92 -8)"><rect width="6" height="16" fill="#ffd34a"/><rect y="5.3" width="6" height="5.3" fill="#1c7a3a"/><rect y="10.6" width="6" height="5.4" fill="#c8222c"/></g>
+    <!-- porthole shadow -->
+    <circle r="54" fill="none" stroke="#000" stroke-opacity=".45" stroke-width="12" filter="url(#soft)"/>
+  </g>
+
+  <!-- porthole bezel -->
+  <circle r="46" fill="none" stroke="url(#bezel)" stroke-width="12"/>
+  <circle r="52" fill="none" stroke="#000" stroke-opacity=".45" stroke-width="1.5"/>
+  <circle r="40" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.5"/>
+  <circle r="46" fill="none" stroke="#000" stroke-opacity=".25" stroke-width="2"/>
+  <g fill="#48505f" stroke="#e8edf5" stroke-width=".6">
+    <circle cx="0" cy="-46" r="2.6"/><circle cx="0" cy="46" r="2.6"/><circle cx="-46" cy="0" r="2.6"/><circle cx="46" cy="0" r="2.6"/>
+    <circle cx="32.5" cy="-32.5" r="2.6"/><circle cx="-32.5" cy="-32.5" r="2.6"/><circle cx="32.5" cy="32.5" r="2.6"/><circle cx="-32.5" cy="32.5" r="2.6"/>
+  </g>
+  <!-- glass -->
+  <circle r="40" fill="url(#glass)" opacity=".85"/>
+  <path d="M-28 -22q14 -16 34 -14" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".45" filter="url(#soft)"/>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-75 -185 150 150" width="900" height="900">
+  <defs><clipPath id="visorClip"><ellipse cx="0" cy="-110" rx="62" ry="56"/></clipPath></defs>
+  <g clip-path="url(#visorClip)">
+    <ellipse cx="0" cy="-110" rx="62" ry="56" fill="#1a1d24"/>
+    <image href="face.jpg" x="-62" y="-166" width="124" height="112" preserveAspectRatio="xMidYMid slice"/>
+  </g>
+</svg>

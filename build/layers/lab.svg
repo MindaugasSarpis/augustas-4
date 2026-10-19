@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-560 -560 1120 1120" width="2800" height="2800">
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a5566"/>
+      <stop offset=".5" stop-color="#0d3644"/>
+      <stop offset="1" stop-color="#07212b"/>
+    </linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#17434f"/>
+      <stop offset=".5" stop-color="#0a2832"/>
+      <stop offset="1" stop-color="#03111a"/>
+    </linearGradient>
+    <radialGradient id="spot" cx="50%" cy="0%" r="75%">
+      <stop offset="0" stop-color="#a8ecff" stop-opacity=".38"/>
+      <stop offset=".6" stop-color="#a8ecff" stop-opacity=".06"/>
+      <stop offset="1" stop-color="#a8ecff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="vignette" cx="50%" cy="45%" r="68%">
+      <stop offset=".5" stop-color="#000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000" stop-opacity=".8"/>
+    </radialGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f6f8fb"/>
+      <stop offset=".45" stop-color="#b9c4d0"/>
+      <stop offset="1" stop-color="#5e6a79"/>
+    </linearGradient>
+    <linearGradient id="leg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#3f4756"/>
+      <stop offset=".4" stop-color="#b9c3d1"/>
+      <stop offset="1" stop-color="#2f3642"/>
+    </linearGradient>
+    <linearGradient id="glassH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity=".6"/>
+      <stop offset=".25" stop-color="#fff" stop-opacity=".12"/>
+      <stop offset=".75" stop-color="#fff" stop-opacity=".04"/>
+      <stop offset="1" stop-color="#fff" stop-opacity=".45"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0f4258"/>
+      <stop offset="1" stop-color="#051c27"/>
+    </linearGradient>
+    <linearGradient id="metalV" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2c6578"/>
+      <stop offset="1" stop-color="#143a48"/>
+    </linearGradient>
+    <filter id="blur6" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="6"/></filter>
+    <filter id="blur14" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="14"/></filter>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" seed="9" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .07 0" result="g"/>
+      <feComposite in="g" in2="SourceGraphic" operator="in" result="gi"/>
+      <feBlend in="SourceGraphic" in2="gi" mode="multiply"/>
+    </filter>
+    <clipPath id="port"><circle r="560"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#port)">
+    <g filter="url(#grain)">
+      <rect x="-600" y="-600" width="1200" height="1200" fill="url(#wall)"/>
+    </g>
+    <!-- wall panel seams -->
+    <g stroke="#061e27" stroke-width="5" fill="none" opacity=".8">
+      <path d="M-600 -300H600M-600 -60H600M-300 -600V150M300 -600V150"/>
+    </g>
+    <g stroke="#2a6b80" stroke-width="1.5" fill="none" opacity=".5">
+      <path d="M-600 -296H600M-600 -56H600M-296 -600V150M304 -600V150"/>
+    </g>
+    <!-- light rail -->
+    <rect x="-520" y="-432" width="1040" height="20" fill="url(#metalV)"/>
+    <rect x="-520" y="-432" width="1040" height="5" fill="#bdf3ff" opacity=".9" filter="url(#glow)"/>
+    <!-- ceiling light cone -->
+    <rect x="-600" y="-600" width="1200" height="800" fill="url(#spot)"/>
+
+    <!-- monitor -->
+    <rect x="216" y="-344" width="288" height="198" rx="20" fill="#000" opacity=".5" filter="url(#blur6)"/>
+    <rect x="222" y="-338" width="276" height="186" rx="18" fill="#0a1c25"/>
+    <rect x="230" y="-330" width="260" height="170" rx="14" fill="url(#screen)" stroke="#2f7b93" stroke-width="3"/>
+    <g stroke="#17525f" stroke-width="1" opacity=".6"><path d="M230 -290H490M230 -250H490M230 -210H490M280 -330V-160M330 -330V-160M380 -330V-160M430 -330V-160"/></g>
+    <path d="M250 -240h50l20 -40 25 80 25 -60 15 20h85" fill="none" stroke="#7dff6a" stroke-width="6" stroke-linejoin="round" filter="url(#glow)"/>
+    <text x="360" y="-185" text-anchor="middle" font-family="'Baloo 2', Arial, sans-serif" font-weight="800" font-size="36" fill="#ffd23f">4</text>
+    <rect x="230" y="-330" width="260" height="70" rx="14" fill="#fff" opacity=".07"/>
+
+    <!-- shelf with bottles -->
+    <rect x="-500" y="-196" width="290" height="16" fill="#000" opacity=".4" filter="url(#blur6)"/>
+    <rect x="-500" y="-210" width="290" height="12" fill="url(#steel)"/>
+    <g>
+      <rect x="-470" y="-270" width="34" height="60" rx="8" fill="#e35b8a"/><rect x="-470" y="-270" width="34" height="60" rx="8" fill="url(#glassH)"/>
+      <rect x="-420" y="-285" width="30" height="75" rx="8" fill="#5cc6f2"/><rect x="-420" y="-285" width="30" height="75" rx="8" fill="url(#glassH)"/>
+      <rect x="-375" y="-260" width="40" height="50" rx="10" fill="#f2c62a"/><rect x="-375" y="-260" width="40" height="50" rx="10" fill="url(#glassH)"/>
+      <rect x="-320" y="-280" width="28" height="70" rx="8" fill="#a07ff0"/><rect x="-320" y="-280" width="28" height="70" rx="8" fill="url(#glassH)"/>
+      <rect x="-280" y="-250" width="36" height="40" rx="6" fill="#f5f7fa" opacity=".9"/><rect x="-276" y="-244" width="28" height="12" fill="#d33"/>
+    </g>
+
+    <!-- floor -->
+    <rect x="-600" y="150" width="1200" height="450" fill="url(#floor)"/>
+    <g stroke="#0b3a47" stroke-width="2" opacity=".7" fill="none">
+      <path d="M-600 150L-900 600M-300 150L-500 600M0 150V600M300 150L500 600M600 150L900 600"/>
+      <path d="M-600 230H600M-600 340H600M-600 480H600"/>
+    </g>
+    <rect x="-600" y="150" width="1200" height="60" fill="#fff" opacity=".05"/>
+    <path d="M-600 150H600" stroke="#f3c21a" stroke-width="14" stroke-dasharray="40 40"/>
+    <path d="M-600 150H600" stroke="#fff" stroke-width="2" opacity=".4"/>
+
+    <!-- bench with flasks -->
+    <ellipse cx="-345" cy="152" rx="150" ry="12" fill="#000" opacity=".5" filter="url(#blur6)"/>
+    <rect x="-455" y="48" width="18" height="102" fill="url(#leg)"/>
+    <rect x="-253" y="48" width="18" height="102" fill="url(#leg)"/>
+    <rect x="-470" y="30" width="250" height="18" rx="6" fill="url(#steel)"/>
+    <rect x="-470" y="30" width="250" height="4" rx="2" fill="#fff" opacity=".7"/>
+    <g>
+      <path d="M-430 30v-40h-12v-8h44v8h-12v40z" fill="#8fe0ff" opacity=".8"/>
+      <path d="M-430 30v-40h-12v-8h44v8h-12v40z" fill="url(#glassH)"/>
+      <path d="M-360 30l26 -60v-22h-12v-8h44v8h-12v22l26 60z" fill="#ff7fae" opacity=".85"/>
+      <path d="M-360 30l26 -60v-22h-12v-8h44v8h-12v22l26 60z" fill="url(#glassH)"/>
+      <path d="M-352 22l18 -40h20l18 40z" fill="#ff4d8e" opacity=".7"/>
+      <circle cx="-270" cy="10" r="20" fill="#a07ff0" opacity=".9"/>
+      <circle cx="-276" cy="3" r="6" fill="#fff" opacity=".6"/>
+      <rect x="-277" y="-30" width="14" height="22" fill="#a07ff0" opacity=".9"/>
+    </g>
+
+    <!-- right console -->
+    <rect x="246" y="26" width="228" height="134" rx="14" fill="#000" opacity=".5" filter="url(#blur6)"/>
+    <rect x="250" y="20" width="220" height="130" rx="12" fill="#1b4a5c"/>
+    <rect x="250" y="20" width="220" height="50" rx="12" fill="#fff" opacity=".08"/>
+    <circle cx="300" cy="65" r="16" fill="#e24a4a" filter="url(#glow)"/>
+    <circle cx="350" cy="65" r="16" fill="#6ef25a" filter="url(#glow)"/>
+    <circle cx="400" cy="65" r="16" fill="#f5cf3a" filter="url(#glow)"/>
+    <g fill="#fff" opacity=".5"><circle cx="294" cy="59" r="4"/><circle cx="344" cy="59" r="4"/><circle cx="394" cy="59" r="4"/></g>
+    <rect x="285" y="105" width="150" height="16" rx="8" fill="#0b2b38"/>
+    <rect x="285" y="105" width="90" height="16" rx="8" fill="#6ef25a" opacity=".7"/>
+    <g fill="#0b2b38"><rect x="440" y="100" width="18" height="26" rx="3"/><rect x="443" y="104" width="12" height="8" fill="#9fe8ff"/></g>
+
+    <!-- shadow of Augustas on wall and floor (kid layer sits on top) -->
+    <ellipse cx="8" cy="168" rx="125" ry="18" fill="#000" opacity=".55" filter="url(#blur14)"/>
+    <rect x="-70" y="-190" width="190" height="330" rx="80" fill="#000" opacity=".28" transform="translate(26 8)" filter="url(#blur14)"/>
+
+    <!-- vignette -->
+    <rect x="-600" y="-600" width="1200" height="1200" fill="url(#vignette)"/>
+  </g>
+</svg>

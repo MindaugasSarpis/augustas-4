@@ -17,7 +17,7 @@ window.createStation = function (canvas) {
   const FS = `#version 300 es
     precision highp float;
     in vec3 vN; in vec3 vP; flat in float vM; in vec2 vT;
-    uniform float beacon, thrust; uniform sampler2D nameTex, stationTex;
+    uniform float beacon, thrust, faceOn; uniform sampler2D nameTex, stationTex, faceTex;
     out vec4 o;
     float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
     float noise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
@@ -86,9 +86,22 @@ window.createStation = function (canvas) {
         float a = atan(vP.y, vP.z);                       // 0 at the front (+z)
         float band = smoothstep(0.0, 0.6 + upp, abs(vP.x + 26.0) - 2.0);
         base = mix(vec3(0.15, 0.35, 0.8), base, band);
-        if (abs(a) < 0.75 && vP.x > -20.0 && vP.x < 34.0) {
-          vec4 tx = texture(nameTex, vec2((vP.x + 20.0) / 54.0, 0.5 + a / 1.5));
+        if (abs(a) < 0.75 && vP.x > -4.0 && vP.x < 34.0) {
+          vec4 tx = texture(nameTex, vec2((vP.x + 4.0) / 38.0, 0.5 + a / 1.5));
           base = mix(base, tx.rgb, tx.a * fine);
+        }
+        // round window near the nose with the pilot looking out
+        if (vP.z > 0.0) {
+          vec2 wp = vec2(vP.x + 17.0, vP.y);
+          float d = length(wp);
+          if (d < 11.0) {
+            vec3 inside = faceOn > 0.5 ? texture(faceTex, wp / 17.0 + 0.5).rgb : vec3(0.08, 0.1, 0.14);
+            float glass = 0.18 * smoothstep(2.0, 9.0, length(wp - vec2(-3.0, -3.0)));
+            vec3 win = inside * 0.95 + vec3(glass);
+            vec3 rim = mix(vec3(0.2, 0.22, 0.27), vec3(0.85, 0.88, 0.92), 0.5 + 0.5 * sin(atan(wp.y, wp.x) * 2.0 + 0.8));
+            base = mix(win, rim, smoothstep(8.5 - upp, 8.5 + upp, d));
+            o = vec4(base * (0.55 + 0.45 * diff) + vec3(1.0) * spec * 0.4 * smoothstep(8.5, 9.0, d), 1.0); return;
+          }
         }
         ks = 0.5;
       } else if (M == 11) {                             // the ship's dark panels with a gold grid
@@ -201,7 +214,7 @@ window.createStation = function (canvas) {
   for (const sy of [-1, 1]) panel(-14, 14, sy * 24, sy * 62, 0, 11);
   box(-3, 3, -26, 26, -2, 2, 2);                     // wing mast
   sphere(36, 0, 0, 6, 10);                           // thruster
-  sphere(10, -6, 19, 5, 7, 10);                      // window
+
   const shipStart = stationCount, shipCount = I.length - stationCount;
 
   // name textures, drawn with the page font
@@ -226,6 +239,19 @@ window.createStation = function (canvas) {
   }
   nameTexture(3, "E.M.I.L. 0", 72);
   nameTexture(4, "A.U.G.U. 4", 78);
+  // the pilot
+  let faceOn = 0;
+  {
+    const tex = gl.createTexture(), im = new Image();
+    im.onload = () => {
+      gl.activeTexture(gl.TEXTURE5); gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, im);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      faceOn = 1;
+    };
+    im.src = "assets/emilis.jpg";
+  }
 
   const buf = (data, loc, size) => {
     const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
@@ -238,6 +264,7 @@ window.createStation = function (canvas) {
   const uR2 = gl.getUniformLocation(pr, "R2"), uOff = gl.getUniformLocation(pr, "off"), uThrust = gl.getUniformLocation(pr, "thrust");
   gl.uniform2f(uHalf, 520, 260);
   gl.uniform1i(gl.getUniformLocation(pr, "nameTex"), 3); gl.uniform1i(gl.getUniformLocation(pr, "stationTex"), 4);
+  gl.uniform1i(gl.getUniformLocation(pr, "faceTex"), 5); const uFace = gl.getUniformLocation(pr, "faceOn");
   const ID = new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]);
   const yaw = a => { const c = Math.cos(a), s = Math.sin(a); return new Float32Array([c, 0, -s, 0, 1, 0, s, 0, c]); };
   const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
@@ -269,6 +296,7 @@ window.createStation = function (canvas) {
         gl.uniform3f(uOff, 320 + (460 - 320) * (1 - e), -180 * (1 - e), 120 * (1 - e));
         gl.uniformMatrix3fv(uR2, false, yaw(-0.5 * (1 - e)));
         gl.uniform1f(uThrust, dock < 0.97 ? 0.6 + 0.4 * Math.sin(dock * 60) : 0);
+        gl.uniform1f(uFace, faceOn);
         gl.drawElements(gl.TRIANGLES, shipCount, gl.UNSIGNED_INT, shipStart * 4);
       }
     },

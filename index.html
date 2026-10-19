@@ -435,7 +435,7 @@
     { hold: "station",                   dur: 700,  text: "…kuri yra kosminėje stotyje…" },
     // hero shot: the camera swings around the station over the Earth's limb, then pulls out
     { from: "station", to: "hero",       dur: 1800, text: "…skriejančioje aplink Žemę!", sfx: "whoosh", rot: [[0, 0], [14, -30]], dock: [0, 0.12] },
-    { from: "hero",    to: "hero2",      dur: 5500, text: "…skriejančioje aplink Žemę!", linear: true, rot: [[14, -30], [10, 24]], dock: [0.12, 1] },
+    { from: "hero",    to: "hero2",      dur: 5500, text: "…skriejančioje aplink Žemę!", dockText: "Prisijungia E.M.I.L. 0!", linear: true, rot: [[14, -30], [10, 24]], dock: [0.12, 1] },
     { from: "hero2",   to: "end",        dur: 2800, text: "…skriejančioje aplink Žemę!", orbit: true, sfx: "whoosh", rot: [[10, 24], "idle"] },
   ];
   const caption = document.getElementById("caption");
@@ -466,10 +466,11 @@
     render(v);
     if (station) station.draw(now);
     if (s.visor) visorEl.style.opacity = Math.min(1, t / s.dur * 1.6).toFixed(3);
-    if (s.text !== lastText) {
-      lastText = s.text;
+    const text = s.dockText && dock > 0.72 ? s.dockText : s.text;
+    if (text !== lastText) {
+      lastText = text;
       caption.classList.remove("on");
-      setTimeout(() => { caption.textContent = s.text; caption.classList.add("on"); }, i === 0 ? 150 : 250);
+      setTimeout(() => { caption.textContent = text; caption.classList.add("on"); }, i === 0 ? 150 : 250);
     }
     if (earth) earth.draw();
     raf = requestAnimationFrame(frame);

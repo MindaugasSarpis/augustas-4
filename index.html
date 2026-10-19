@@ -198,7 +198,7 @@
   </div>
 </main>
 
-<script src="assets/station3d.js"></script>
+<script src="assets/station3d.js?v=7"></script>
 <script>
 (() => {
   // ---------- world geometry ----------
@@ -435,12 +435,12 @@
     { from: "lab",     to: "station",    dur: 2600, text: "…kuri yra kosminėje stotyje…", sfx: "whoosh" },
     { hold: "station",                   dur: 700,  text: "…kuri yra kosminėje stotyje…" },
     // docking: track right along the station to the port, watch E.M.I.L. 0 come in slowly
-    { from: "station", to: "dockcam",    dur: 2600, text: "…kuri yra kosminėje stotyje…", sfx: "whoosh", rot: [[0, 0], [8, -14]], dock: [0, 0.04] },
+    { from: "station", to: "dockcam",    dur: 2600, text: "…skriejančioje aplink Žemę!", sfx: "whoosh", rot: [[0, 0], [8, -14]], dock: [0, 0.04] },
     { hold: "dockcam",                   dur: 9000, text: "Prisijungia E.M.I.L. 0!", sfx: "bleeps", rot: [[8, -14], [8, -14]], dock: [0.04, 1] },
     // hero shot: the camera swings around the station over the Earth's limb, then pulls out
-    { from: "dockcam", to: "hero",       dur: 2400, text: "…skriejančioje aplink Žemę!", sfx: "whoosh", rot: [[8, -14], [14, -30]] },
-    { from: "hero",    to: "hero2",      dur: 4000, text: "…skriejančioje aplink Žemę!", linear: true, rot: [[14, -30], [10, 24]] },
-    { from: "hero2",   to: "end",        dur: 2800, text: "…skriejančioje aplink Žemę!", orbit: true, sfx: "whoosh", rot: [[10, 24], "idle"] },
+    { from: "dockcam", to: "hero",       dur: 2400, text: "Įgula surinkta – lauksime ir tavęs!", sfx: "whoosh", rot: [[8, -14], [14, -30]] },
+    { from: "hero",    to: "hero2",      dur: 4000, text: "Įgula surinkta – lauksime ir tavęs!", linear: true, rot: [[14, -30], [10, 24]] },
+    { from: "hero2",   to: "end",        dur: 2800, text: "Įgula surinkta – lauksime ir tavęs!", orbit: true, sfx: "whoosh", rot: [[10, 24], "idle"] },
   ];
   const caption = document.getElementById("caption");
   const visorEl = document.getElementById("visor");

@@ -233,7 +233,7 @@
     { el: "kid",        grp: "LB", lx0: -140,  ly0: -240,  R: 4 },
     { el: "face",       grp: "LB", lx0: -75,   ly0: -185,  R: 6 },
     { el: "visor",      grp: "LB", lx0: -75,   ly0: -185,  R: 6 },
-    { el: "station3d",  grp: "ST", lx0: -420,  ly0: -210,  R: 2 },
+    { el: "station3d",  grp: "ST", lx0: -520,  ly0: -260,  R: 1680 / 1040 },
     { el: "station",    grp: "ST", lx0: -400,  ly0: -140,  R: 3 },
   ];
   for (const L of layers) { L.node = document.getElementById(L.el); if (L.z !== undefined) L.node.style.zIndex = L.z; }
@@ -250,7 +250,7 @@
     const F = {
       visor: w(ls, -62, -166, 124, 112),
       lab: w(ls, -200, -215, 400, 420),
-      station: w(s, -400, -130, 800, 260),
+      station: w(s, -430, -130, 860, 260),
       earth: { x: -450, y: -320, w: 900, h: 640 },
     };
     // opening: the largest W:H rectangle inscribed in the visor ellipse (helmet off-screen)
@@ -273,7 +273,7 @@
       end,
     };
   }
-  let cur = null, rot = [0, 0];   // [rotateX, rotateY] degrees: the station group seen in perspective (hero shot)
+  let cur = null, rot = [0, 0], dock = 0;   // dock: the visiting ship's approach, 0..1   // [rotateX, rotateY] degrees: the station group seen in perspective (hero shot)
   function render(v) {
     cur = v;
     for (const L of layers) {
@@ -411,14 +411,14 @@
       // Keep the drawing buffer close to the on-screen size (never more than ~1.2x larger): a GPU canvas is
       // composited without mipmaps, so anything drawn larger and shrunk shimmers as the model turns.
       fit(v) {
-        const need = 840 * ST.s / v.k * (devicePixelRatio || 1);
-        const w = Math.max(120, Math.min(1680, Math.round(need * 1.1 / 8) * 8));
-        if (Math.abs(w - cv.width) / cv.width > 0.12 || w === 1680 && cv.width !== 1680) {
-          cv.width = w; cv.height = w / 2; st.resize(w, w / 2); layer.R = w / 840;
+        const need = 1040 * ST.s / v.k * (devicePixelRatio || 1);
+        const w = Math.max(150, Math.min(2080, Math.round(need * 1.1 / 8) * 8));
+        if (Math.abs(w - cv.width) / cv.width > 0.12 || w === 2080 && cv.width !== 2080) {
+          cv.width = w; cv.height = w / 2; st.resize(w, w / 2); layer.R = w / 1040;
         }
       },
       draw(now) {
-        st.draw(rot[0], rot[1], 0.5 + 0.5 * Math.sin(now / 280));
+        st.draw(rot[0], rot[1], 0.5 + 0.5 * Math.sin(now / 280), dock);
         if (!cv.classList.contains("on")) cv.classList.add("on");
       },
     };
@@ -434,8 +434,8 @@
     { from: "lab",     to: "station",    dur: 2600, text: "…kuri yra kosminėje stotyje…", sfx: "whoosh" },
     { hold: "station",                   dur: 700,  text: "…kuri yra kosminėje stotyje…" },
     // hero shot: the camera swings around the station over the Earth's limb, then pulls out
-    { from: "station", to: "hero",       dur: 1800, text: "…skriejančioje aplink Žemę!", sfx: "whoosh", rot: [[0, 0], [14, -30]] },
-    { from: "hero",    to: "hero2",      dur: 4500, text: "…skriejančioje aplink Žemę!", linear: true, rot: [[14, -30], [10, 24]] },
+    { from: "station", to: "hero",       dur: 1800, text: "…skriejančioje aplink Žemę!", sfx: "whoosh", rot: [[0, 0], [14, -30]], dock: [0, 0.12] },
+    { from: "hero",    to: "hero2",      dur: 5500, text: "…skriejančioje aplink Žemę!", linear: true, rot: [[14, -30], [10, 24]], dock: [0.12, 1] },
     { from: "hero2",   to: "end",        dur: 2800, text: "…skriejančioje aplink Žemę!", orbit: true, sfx: "whoosh", rot: [[10, 24], "idle"] },
   ];
   const caption = document.getElementById("caption");
@@ -460,6 +460,7 @@
     const u = s.linear ? t / s.dur : ease(t / s.dur), mix = (a, b) => a + (b - a) * u;
     if (s.rot) { const to = s.rot[1] === "idle" ? idleRot(now) : s.rot[1]; rot = [mix(s.rot[0][0], to[0]), mix(s.rot[0][1], to[1])]; }
     else rot = [0, 0];
+    if (s.dock) dock = mix(s.dock[0], s.dock[1]); else if (!s.rot) dock = 0;
     const v = s.hold ? views[s.hold] : between(views[s.from], views[s.to], u);
     if (station) station.fit(v);
     render(v);
@@ -496,7 +497,7 @@
     scrollTo(0, 0);
     lastText = ""; stepIdx = -1; caption.classList.remove("on");
     visorEl.style.opacity = 0;
-    orbitT0 = 0; placeStation(THETA0); rot = [0, 0];
+    orbitT0 = 0; placeStation(THETA0); rot = [0, 0]; dock = 0;
     measure(); render(views.face);
     start = performance.now();
     raf = requestAnimationFrame(frame);

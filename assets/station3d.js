@@ -1,5 +1,5 @@
 // Volumetric space station rendered in WebGL2 (orthographic, station units: x right, y down, z towards the viewer).
-// The canvas covers local -420..420 × -210..210. The porthole (radius 44 at the front of the main module)
+// The canvas covers local -520..520 × -260..260. The porthole (radius 44 at the front of the main module)
 // is a real hole: those fragments are discarded so the lab layers underneath show through.
 window.createStation = function (canvas) {
   const gl = canvas.getContext("webgl2", { alpha: true, premultipliedAlpha: true, antialias: true, depth: true, stencil: false, powerPreference: "high-performance" });
@@ -7,17 +7,17 @@ window.createStation = function (canvas) {
 
   const VS = `#version 300 es
     in vec3 p; in vec3 n; in float m; in vec2 t;
-    uniform mat3 R; uniform vec2 hsz;
+    uniform mat3 R; uniform vec2 hsz; uniform mat3 R2; uniform vec3 off;
     out vec3 vN; out vec3 vP; flat out float vM; out vec2 vT;
     void main(){
-      vec3 q = R * p;
-      vN = R * n; vP = p; vM = m; vT = t;
+      vec3 q = R * (R2 * p + off);
+      vN = R * (R2 * n); vP = p; vM = m; vT = t;
       gl_Position = vec4(q.x / hsz.x, -q.y / hsz.y, -q.z / 600.0, 1.0);
     }`;
   const FS = `#version 300 es
     precision highp float;
     in vec3 vN; in vec3 vP; flat in float vM; in vec2 vT;
-    uniform float beacon;
+    uniform float beacon, thrust; uniform sampler2D nameTex, stationTex;
     out vec4 o;
     float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
     float noise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
@@ -43,6 +43,13 @@ window.createStation = function (canvas) {
         float ring = smoothstep(0.0, 0.8 + upp, abs(fract(atan(vP.y, vP.z) / 1.5708 + 0.5) - 0.5) * 30.0);
         base *= 1.0 - 0.45 * fine * (1.0 - min(seam, ring));
         base *= 0.92 + 0.08 * noise(vP.xy * 0.4) * fine;
+        if (M == 0) {                                   // name beside the porthole
+          float a = atan(vP.y, vP.z);
+          if (abs(a) < 0.7 && vP.x > 54.0 && vP.x < 126.0) {
+            vec4 tx = texture(stationTex, vec2((vP.x - 54.0) / 72.0, 0.5 + a / 1.4));
+            base = mix(base, tx.rgb, tx.a * fine);
+          }
+        }
       } else if (M == 1) {                              // gold multi-layer insulation
         float w = noise(vP.xy * 0.18 + vP.z * 0.05) * 0.6 + noise(vP.yz * 0.5) * 0.4;
         base = mix(vec3(0.55, 0.38, 0.12), vec3(0.95, 0.78, 0.38), w);
@@ -74,6 +81,25 @@ window.createStation = function (canvas) {
         float r = length(vP.xy);
         base *= 0.75 + 0.25 * smoothstep(40.0, 42.0, r) * (1.0 - smoothstep(50.0, 52.0, r));
         ks = 0.8;
+      } else if (M == 9) {                              // visiting ship: white hull with a blue band and its name
+        base = vec3(0.9, 0.92, 0.95);
+        float a = atan(vP.y, vP.z);                       // 0 at the front (+z)
+        float band = smoothstep(0.0, 0.6 + upp, abs(vP.x + 26.0) - 2.0);
+        base = mix(vec3(0.15, 0.35, 0.8), base, band);
+        if (abs(a) < 0.75 && vP.x > -20.0 && vP.x < 34.0) {
+          vec4 tx = texture(nameTex, vec2((vP.x + 20.0) / 54.0, 0.5 + a / 1.5));
+          base = mix(base, tx.rgb, tx.a * fine);
+        }
+        ks = 0.5;
+      } else if (M == 11) {                             // the ship's dark panels with a gold grid
+        vec2 c = fract(vT / vec2(7.0, 8.0));
+        vec2 aa = vec2(upp / 7.0, upp / 8.0);
+        float line = smoothstep(0.12 - aa.x, 0.12 + aa.x, c.x) * smoothstep(0.1 - aa.y, 0.1 + aa.y, c.y);
+        line = mix(0.8, line, fine);
+        base = mix(vec3(0.75, 0.6, 0.25), vec3(0.08, 0.1, 0.16), line);
+        ks = 0.5; spec = pow(max(dot(N, H), 0.0), 12.0);
+      } else if (M == 10) {                             // thruster
+        o = vec4(mix(vec3(0.1, 0.15, 0.3), vec3(0.6, 0.85, 1.0), thrust), 1.0); return;
       } else {                                          // dark fittings
         base = vec3(0.22, 0.25, 0.3); ks = 0.4;
       }
@@ -149,23 +175,57 @@ window.createStation = function (canvas) {
   }
 
   // main module (with the porthole), couplings, gold side modules
-  capsule(-100, 100, 38, 0);
-  capsule(-212, -118, 44, 1); capsule(118, 212, 44, 1);
-  box(-116, -100, -46, 46, -46, 46, 8); box(100, 116, -46, 46, -46, 46, 8);
+  capsule(-130, 130, 38, 0);
+  capsule(-242, -148, 44, 1); capsule(148, 242, 44, 1);
+  box(-146, -130, -46, 46, -46, 46, 8); box(130, 146, -46, 46, -46, 46, 8);
   annulus(0, 0, 38.5, 40, 53, 6);
   annulus(0, 0, 38.2, 34, 40.5, 7);
   // truss (two segments so nothing shows through the porthole) and solar wings
-  box(-392, -214, -7, 7, -26, -12, 2); box(214, 392, -7, 7, -26, -12, 2);
+  box(-422, -244, -7, 7, -26, -12, 2); box(244, 422, -7, 7, -26, -12, 2);
   for (const sx of [-1, 1]) {
-    panel(sx * 205, sx * 385, -78, -8, -19, 3); panel(sx * 205, sx * 385, 8, 78, -19, 3);
-    box(sx * 205, sx * 385, -3, 3, -22, -16, 2);
-    panel(sx * 236, sx * 290, 12, 102, -4, 4);            // radiator: its own plane, in front of the wing
-    box(sx * 260, sx * 266, 4, 14, -8, 0, 7);             // its mount
+    panel(sx * 235, sx * 415, -78, -8, -19, 3); panel(sx * 235, sx * 415, 8, 78, -19, 3);
+    box(sx * 235, sx * 415, -3, 3, -22, -16, 2);
+    panel(sx * 266, sx * 320, 12, 102, -4, 4);            // radiator: its own plane, in front of the wing
+    box(sx * 290, sx * 296, 4, 14, -8, 0, 7);             // its mount
   }
   // antenna + beacon, small dish post
   cylinderY(0, 0, -108, -38, 2.5, 7);
   sphere(0, -114, 0, 7, 5);
   cylinderY(70, 0, -70, -36, 2, 7); sphere(70, -74, 0, 9, 8, 10);
+
+  const stationCount = I.length;
+  // ---------- visiting ship "E.M.I.L.I.S." (ship-local: axis along x, nose at -x) ----------
+  capsule(-30, 30, 19, 9, 36, 8);
+  capsule(-52, -38, 7, 7, 16, 4);                    // docking probe
+  annulus(-30, 0, 0, 0, 0, 7);                      // (no-op keeps indices simple)
+  for (const sy of [-1, 1]) panel(-14, 14, sy * 24, sy * 62, 0, 11);
+  box(-3, 3, -26, 26, -2, 2, 2);                     // wing mast
+  sphere(36, 0, 0, 6, 10);                           // thruster
+  sphere(10, -6, 19, 5, 7, 10);                      // window
+  const shipStart = stationCount, shipCount = I.length - stationCount;
+
+  // name textures, drawn with the page font
+  function nameTexture(unit, text, size) {
+    const tex = gl.createTexture();
+    const c = document.createElement("canvas"); c.width = 512; c.height = 128;
+    const x = c.getContext("2d");
+    const draw = () => {
+      x.clearRect(0, 0, 512, 128);
+      x.fillStyle = "#1b2740"; x.font = `800 ${size}px 'Baloo 2', Arial, sans-serif`; x.textAlign = "center"; x.textBaseline = "middle";
+      x.fillText(text, 256, 66);
+      gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c);
+      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    };
+    draw();
+    if (document.fonts && document.fonts.load) document.fonts.load(`800 ${size}px 'Baloo 2'`).then(draw).catch(() => {});
+    return tex;
+  }
+  nameTexture(3, "E.M.I.L. 0", 72);
+  nameTexture(4, "A.U.G.U. 4", 78);
 
   const buf = (data, loc, size) => {
     const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
@@ -175,7 +235,12 @@ window.createStation = function (canvas) {
   const ib = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(I), gl.STATIC_DRAW);
 
   const uR = gl.getUniformLocation(pr, "R"), uHalf = gl.getUniformLocation(pr, "hsz"), uBeacon = gl.getUniformLocation(pr, "beacon");
-  gl.uniform2f(uHalf, 420, 210);
+  const uR2 = gl.getUniformLocation(pr, "R2"), uOff = gl.getUniformLocation(pr, "off"), uThrust = gl.getUniformLocation(pr, "thrust");
+  gl.uniform2f(uHalf, 520, 260);
+  gl.uniform1i(gl.getUniformLocation(pr, "nameTex"), 3); gl.uniform1i(gl.getUniformLocation(pr, "stationTex"), 4);
+  const ID = new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]);
+  const yaw = a => { const c = Math.cos(a), s = Math.sin(a); return new Float32Array([c, 0, -s, 0, 1, 0, s, 0, c]); };
+  const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
   gl.enable(gl.DEPTH_TEST); gl.enable(gl.CULL_FACE); gl.cullFace(gl.BACK); gl.frontFace(gl.CCW);
   gl.clearColor(0, 0, 0, 0);
   gl.viewport(0, 0, canvas.width, canvas.height);
@@ -192,11 +257,20 @@ window.createStation = function (canvas) {
   }
   return {
     resize(w, h) { gl.viewport(0, 0, w, h); },
-    draw(axDeg, ayDeg, beacon) {
+    // dock: 0 = far away (hidden), 1 = docked at the right-hand port
+    draw(axDeg, ayDeg, beacon, dock = 1) {
       gl.uniformMatrix3fv(uR, false, matrix(axDeg * Math.PI / 180, ayDeg * Math.PI / 180));
       gl.uniform1f(uBeacon, beacon);
+      gl.uniformMatrix3fv(uR2, false, ID); gl.uniform3f(uOff, 0, 0, 0); gl.uniform1f(uThrust, 0);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      gl.drawElements(gl.TRIANGLES, I.length, gl.UNSIGNED_INT, 0);
+      gl.drawElements(gl.TRIANGLES, stationCount, gl.UNSIGNED_INT, 0);
+      if (dock > 0) {
+        const e = ease(dock);
+        gl.uniform3f(uOff, 320 + (460 - 320) * (1 - e), -180 * (1 - e), 120 * (1 - e));
+        gl.uniformMatrix3fv(uR2, false, yaw(-0.5 * (1 - e)));
+        gl.uniform1f(uThrust, dock < 0.97 ? 0.6 + 0.4 * Math.sin(dock * 60) : 0);
+        gl.drawElements(gl.TRIANGLES, shipCount, gl.UNSIGNED_INT, shipStart * 4);
+      }
     },
   };
 };

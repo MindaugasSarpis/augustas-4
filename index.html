@@ -108,13 +108,14 @@
   .halo { animation: pulse 1.8s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
   @keyframes pulse { from { opacity: .55; transform: scale(.9); } to { opacity: 1; transform: scale(1.1); } }
   .land { animation: spin 90s linear infinite; }
+  .clouds { animation: spin 70s linear infinite; }
   @keyframes spin { to { transform: translateX(-1200px); } }
   .tw { animation: tw 2.4s ease-in-out infinite alternate; }
   @keyframes tw { to { opacity: .2; } }
   .blink { animation: blink 1.2s steps(1) infinite; }
   @keyframes blink { 50% { opacity: .15; } }
   @media (prefers-reduced-motion: reduce) {
-    .bubble, .halo, .land, .tw, .blink { animation: none; }
+    .bubble, .halo, .land, .clouds, .tw, .blink { animation: none; }
   }
 </style>
 </head>
@@ -122,180 +123,409 @@
 
 <svg id="world" xmlns="http://www.w3.org/2000/svg" viewBox="-500 -500 1000 1000" aria-hidden="true">
   <defs>
-    <radialGradient id="ocean" cx="40%" cy="35%" r="70%">
-      <stop offset="0" stop-color="#4fb3ff"/>
-      <stop offset=".6" stop-color="#1f6fd1"/>
-      <stop offset="1" stop-color="#0b2f73"/>
+    <!-- ===== Earth ===== -->
+    <radialGradient id="ocean" cx="32%" cy="30%" r="80%">
+      <stop offset="0" stop-color="#3f9fe8"/>
+      <stop offset=".45" stop-color="#1c63b8"/>
+      <stop offset=".8" stop-color="#0d3a7c"/>
+      <stop offset="1" stop-color="#071f4a"/>
+    </radialGradient>
+    <radialGradient id="terminator" cx="28%" cy="26%" r="78%">
+      <stop offset=".5" stop-color="#000" stop-opacity="0"/>
+      <stop offset=".82" stop-color="#000" stop-opacity=".45"/>
+      <stop offset="1" stop-color="#000" stop-opacity=".9"/>
+    </radialGradient>
+    <radialGradient id="specular" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#fff" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="atmo">
-      <stop offset=".86" stop-color="#6fc3ff" stop-opacity=".55"/>
-      <stop offset="1" stop-color="#6fc3ff" stop-opacity="0"/>
+      <stop offset=".84" stop-color="#8fd3ff" stop-opacity="0"/>
+      <stop offset=".88" stop-color="#8fd3ff" stop-opacity=".55"/>
+      <stop offset=".93" stop-color="#4aa8ff" stop-opacity=".25"/>
+      <stop offset="1" stop-color="#4aa8ff" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="shade" cx="30%" cy="30%" r="80%">
-      <stop offset=".55" stop-color="#000" stop-opacity="0"/>
-      <stop offset="1" stop-color="#000" stop-opacity=".55"/>
-    </radialGradient>
-    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#123f52"/>
-      <stop offset="1" stop-color="#08222e"/>
-    </linearGradient>
-    <linearGradient id="suitShade" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#ffe27a"/>
-      <stop offset=".6" stop-color="#ffd23f"/>
-      <stop offset="1" stop-color="#e0a800"/>
-    </linearGradient>
+    <filter id="landTex" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency=".018" numOctaves="4" seed="7" result="n"/>
+      <feColorMatrix in="n" type="matrix" result="tex"
+        values="0.55 0.25 0 0 0.06   0.4 0.45 0 0 0.16   0.12 0.1 0 0 0.03   0 0 0 0 1"/>
+      <feComposite in="tex" in2="SourceGraphic" operator="in"/>
+    </filter>
+    <filter id="clouds" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency=".008 .016" numOctaves="5" seed="3" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 1   0 0 0 0 1   0 0 0 0 1   0 0 0 11 -6.2" result="c"/>
+      <feGaussianBlur in="c" stdDeviation="1.2" result="cb"/>
+      <feComposite in="cb" in2="SourceGraphic" operator="in"/>
+    </filter>
+    <filter id="blur6"><feGaussianBlur stdDeviation="6"/></filter>
+    <filter id="blur14"><feGaussianBlur stdDeviation="14"/></filter>
+    <filter id="blur30" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="30"/></filter>
+    <clipPath id="earthClip"><circle r="300"/></clipPath>
+
+    <!-- ===== Station ===== -->
     <linearGradient id="hull" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#f1f4f9"/>
-      <stop offset="1" stop-color="#a9b3c4"/>
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".18" stop-color="#e3e9f2"/>
+      <stop offset=".55" stop-color="#9ea9bb"/>
+      <stop offset=".85" stop-color="#5c6779"/>
+      <stop offset="1" stop-color="#3b4452"/>
+    </linearGradient>
+    <linearGradient id="truss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d7dde8"/>
+      <stop offset=".5" stop-color="#8d97a8"/>
+      <stop offset="1" stop-color="#454c5a"/>
+    </linearGradient>
+    <linearGradient id="panelSheen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".35"/>
+      <stop offset=".45" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000" stop-opacity=".35"/>
+    </linearGradient>
+    <pattern id="panelGrid" width="30" height="35" patternUnits="userSpaceOnUse">
+      <rect width="30" height="35" fill="#163d8a"/>
+      <rect x="2" y="2" width="26" height="31" fill="#1e52b4"/>
+      <path d="M2 2L28 33" stroke="#6ea2ff" stroke-width="1" opacity=".35"/>
+    </pattern>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f4f7fb"/>
+      <stop offset=".4" stop-color="#9aa4b5"/>
+      <stop offset=".7" stop-color="#3f4756"/>
+      <stop offset="1" stop-color="#b9c2d0"/>
+    </linearGradient>
+    <clipPath id="portholeClip"><circle r="40"/></clipPath>
+
+    <!-- ===== Lab ===== -->
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#18505f"/>
+      <stop offset=".55" stop-color="#0c3341"/>
+      <stop offset="1" stop-color="#071f29"/>
+    </linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#143e4b"/>
+      <stop offset="1" stop-color="#04141b"/>
+    </linearGradient>
+    <radialGradient id="spot" cx="50%" cy="0%" r="70%">
+      <stop offset="0" stop-color="#9fe8ff" stop-opacity=".32"/>
+      <stop offset="1" stop-color="#9fe8ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="vignette" cx="50%" cy="45%" r="70%">
+      <stop offset=".55" stop-color="#000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000" stop-opacity=".75"/>
+    </radialGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f3f6f9"/>
+      <stop offset=".5" stop-color="#b8c3cf"/>
+      <stop offset="1" stop-color="#6c7988"/>
+    </linearGradient>
+    <linearGradient id="glassH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity=".55"/>
+      <stop offset=".3" stop-color="#fff" stop-opacity=".1"/>
+      <stop offset=".8" stop-color="#fff" stop-opacity=".05"/>
+      <stop offset="1" stop-color="#fff" stop-opacity=".4"/>
+    </linearGradient>
+    <linearGradient id="screenG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0e3a4c"/>
+      <stop offset="1" stop-color="#061e29"/>
+    </linearGradient>
+
+    <!-- ===== Suit ===== -->
+    <linearGradient id="suitBody" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#9c6d00"/>
+      <stop offset=".18" stop-color="#e8b100"/>
+      <stop offset=".42" stop-color="#ffd94d"/>
+      <stop offset=".62" stop-color="#ffcf2e"/>
+      <stop offset=".85" stop-color="#d79f00"/>
+      <stop offset="1" stop-color="#7d5600"/>
+    </linearGradient>
+    <linearGradient id="suitTop" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff2b3" stop-opacity=".55"/>
+      <stop offset=".35" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#5a3c00" stop-opacity=".45"/>
+    </linearGradient>
+    <linearGradient id="limb" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#a97700"/>
+      <stop offset=".4" stop-color="#ffd43a"/>
+      <stop offset="1" stop-color="#8a6000"/>
+    </linearGradient>
+    <linearGradient id="limbV" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a97700"/>
+      <stop offset=".4" stop-color="#ffd43a"/>
+      <stop offset="1" stop-color="#8a6000"/>
+    </linearGradient>
+    <radialGradient id="rubber" cx="35%" cy="30%" r="75%">
+      <stop offset="0" stop-color="#5a5f6b"/>
+      <stop offset="1" stop-color="#15171c"/>
+    </radialGradient>
+    <linearGradient id="tank" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#4e5767"/>
+      <stop offset=".45" stop-color="#b5bfcd"/>
+      <stop offset="1" stop-color="#3a414d"/>
+    </linearGradient>
+    <radialGradient id="visorGlass" cx="30%" cy="22%" r="80%">
+      <stop offset="0" stop-color="#fff" stop-opacity=".5"/>
+      <stop offset=".35" stop-color="#fff" stop-opacity=".06"/>
+      <stop offset=".8" stop-color="#5de0ff" stop-opacity=".05"/>
+      <stop offset="1" stop-color="#0a2a3a" stop-opacity=".55"/>
+    </radialGradient>
+    <linearGradient id="visorRing" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6f7684"/>
+      <stop offset=".35" stop-color="#1f232b"/>
+      <stop offset=".75" stop-color="#2d323c"/>
+      <stop offset="1" stop-color="#7c8390"/>
     </linearGradient>
     <radialGradient id="glowGrad">
-      <stop offset="0" stop-color="#b6ff9e" stop-opacity=".9"/>
+      <stop offset="0" stop-color="#d6ffb0" stop-opacity=".95"/>
+      <stop offset=".4" stop-color="#8dff5e" stop-opacity=".45"/>
       <stop offset="1" stop-color="#7dff6a" stop-opacity="0"/>
     </radialGradient>
-    <clipPath id="earthClip"><circle r="300"/></clipPath>
-    <clipPath id="portholeClip"><circle r="40"/></clipPath>
+    <linearGradient id="liquid" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#46d62f"/>
+      <stop offset=".5" stop-color="#b8ff8a"/>
+      <stop offset="1" stop-color="#3fbf2a"/>
+    </linearGradient>
+    <filter id="fabric" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="2" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .12 0" result="g"/>
+      <feComposite in="g" in2="SourceGraphic" operator="in" result="grain"/>
+      <feBlend in="SourceGraphic" in2="grain" mode="multiply"/>
+    </filter>
+    <filter id="innerShade" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feComposite in="b" in2="SourceGraphic" operator="in"/>
+    </filter>
+    <filter id="vialGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="10" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
     <clipPath id="visorClip"><ellipse cx="0" cy="-80" rx="62" ry="56"/></clipPath>
-    <pattern id="panelGrid" width="30" height="35" patternUnits="userSpaceOnUse">
-      <rect width="30" height="35" fill="#1d4fa8"/>
-      <path d="M0 0H30M0 0V35" stroke="#8fb6ff" stroke-width="2" opacity=".6"/>
-    </pattern>
+    <clipPath id="bodyClip"><rect x="-100" y="-170" width="200" height="310" rx="96"/></clipPath>
   </defs>
 
   <g id="root">
-    <rect x="-20000" y="-20000" width="40000" height="40000" fill="#050816"/>
+    <rect x="-20000" y="-20000" width="40000" height="40000" fill="#030510"/>
+    <!-- faint milky way band -->
     <g id="stars"></g>
 
     <!-- EARTH -->
     <g id="earth">
-      <circle r="345" fill="url(#atmo)"/>
+      <circle r="330" fill="url(#atmo)"/>
       <circle r="300" fill="url(#ocean)"/>
       <g clip-path="url(#earthClip)">
-        <g class="land" fill="#3fbf6a">
+        <g class="land" filter="url(#landTex)" fill="#4a9a3c">
           <g id="continents">
-            <path d="M-260 -170c40-40 120-50 160-20s20 70-20 90-30 60-80 70-110-20-110-60 10-50 50-80z"/>
-            <path d="M-60 40c50-20 110 0 120 50s-30 90-70 120-90 10-90-40 0-110 40-130z"/>
-            <path d="M120 -230c60-10 140 20 150 70s-60 60-100 50-90-20-100-60 10-55 50-60z"/>
-            <path d="M200 60c40 0 80 30 70 70s-50 50-80 30-40-90 10-100z"/>
-            <path d="M-330 120c30-10 70 10 70 40s-40 50-70 40-30-70 0-80z"/>
+            <path d="M-262 -172c42-44 118-54 162-24s24 72-18 92-32 62-82 72-108-18-112-62 8-50 50-78z"/>
+            <path d="M-58 42c48-24 112-2 122 48s-28 92-70 122-92 12-92-40 0-110 40-130z"/>
+            <path d="M118 -232c62-12 142 18 152 68s-58 62-102 52-92-20-102-60 12-56 52-60z"/>
+            <path d="M198 58c42-2 82 30 72 72s-52 50-82 30-42-92 10-102z"/>
+            <path d="M-332 118c32-12 72 10 72 42s-42 50-72 40-32-70 0-82z"/>
+            <path d="M-120 -300c40 0 70 20 60 40s-60 20-80 0-10-40 20-40z" opacity=".8"/>
           </g>
           <use href="#continents" x="1200"/>
         </g>
-        <g fill="#fff" opacity=".55">
-          <ellipse cx="-120" cy="-60" rx="90" ry="14"/>
-          <ellipse cx="90" cy="150" rx="110" ry="12"/>
-          <ellipse cx="160" cy="-120" rx="60" ry="10"/>
+        <!-- polar ice -->
+        <ellipse cy="-296" rx="150" ry="28" fill="#eef6ff" opacity=".9"/>
+        <ellipse cy="300" rx="130" ry="22" fill="#eef6ff" opacity=".8"/>
+        <!-- clouds -->
+        <g class="clouds" opacity=".7">
+          <rect x="-600" y="-310" width="1200" height="620" fill="#fff" filter="url(#clouds)"/>
+          <rect x="600" y="-310" width="1200" height="620" fill="#fff" filter="url(#clouds)"/>
         </g>
-        <circle r="300" fill="url(#shade)"/>
+        <circle r="300" fill="url(#terminator)"/>
+        <ellipse cx="-110" cy="-120" rx="120" ry="80" fill="url(#specular)" transform="rotate(-30 -110 -120)"/>
       </g>
-      <ellipse rx="430" ry="120" transform="rotate(-15)" fill="none" stroke="#fff" stroke-opacity=".28" stroke-width="2" stroke-dasharray="8 10"/>
+      <!-- limb highlight -->
+      <circle r="299" fill="none" stroke="#bfe8ff" stroke-width="2.5" opacity=".7" filter="url(#blur6)"/>
+      <ellipse rx="430" ry="120" transform="rotate(-15)" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="2" stroke-dasharray="8 10"/>
       <rect id="earthFrame" x="-450" y="-320" width="900" height="640" fill="none"/>
     </g>
 
     <!-- SPACE STATION (local units; porthole at 0,0) -->
     <g id="station" transform="translate(180 -156) scale(0.25)">
       <rect id="stationFrame" x="-400" y="-130" width="800" height="260" fill="none"/>
-      <path d="M-380 0H380" stroke="#c7ceda" stroke-width="10"/>
-      <rect x="-385" y="-75" width="180" height="70" fill="url(#panelGrid)" stroke="#c7ceda" stroke-width="4"/>
-      <rect x="-385" y="5" width="180" height="70" fill="url(#panelGrid)" stroke="#c7ceda" stroke-width="4"/>
-      <rect x="205" y="-75" width="180" height="70" fill="url(#panelGrid)" stroke="#c7ceda" stroke-width="4"/>
-      <rect x="205" y="5" width="180" height="70" fill="url(#panelGrid)" stroke="#c7ceda" stroke-width="4"/>
+      <!-- truss -->
+      <rect x="-380" y="-6" width="760" height="12" rx="3" fill="url(#truss)"/>
+      <path d="M-380 -6H380" stroke="#fff" stroke-width="1" opacity=".5"/>
+      <!-- solar arrays -->
+      <g>
+        <rect x="-385" y="-75" width="180" height="70" fill="url(#panelGrid)"/>
+        <rect x="-385" y="5" width="180" height="70" fill="url(#panelGrid)"/>
+        <rect x="205" y="-75" width="180" height="70" fill="url(#panelGrid)"/>
+        <rect x="205" y="5" width="180" height="70" fill="url(#panelGrid)"/>
+        <rect x="-385" y="-75" width="180" height="70" fill="url(#panelSheen)"/>
+        <rect x="-385" y="5" width="180" height="70" fill="url(#panelSheen)"/>
+        <rect x="205" y="-75" width="180" height="70" fill="url(#panelSheen)"/>
+        <rect x="205" y="5" width="180" height="70" fill="url(#panelSheen)"/>
+        <g fill="none" stroke="#dfe6f2" stroke-width="3">
+          <rect x="-385" y="-75" width="180" height="70"/><rect x="-385" y="5" width="180" height="70"/>
+          <rect x="205" y="-75" width="180" height="70"/><rect x="205" y="5" width="180" height="70"/>
+        </g>
+      </g>
+      <!-- side modules -->
       <rect x="-200" y="-42" width="95" height="84" rx="16" fill="url(#hull)"/>
       <rect x="105" y="-42" width="95" height="84" rx="16" fill="url(#hull)"/>
-      <path d="M-170 -42v84M-140 -42v84M140 -42v84M170 -42v84" stroke="#8792a6" stroke-width="3"/>
-      <path d="M0 -70v-40" stroke="#c7ceda" stroke-width="6"/>
-      <circle cy="-115" r="9" fill="#ff5b5b" class="blink"/>
+      <path d="M-170 -42v84M-140 -42v84M140 -42v84M170 -42v84" stroke="#000" stroke-opacity=".3" stroke-width="3"/>
+      <path d="M-172 -42v84M-142 -42v84M138 -42v84M168 -42v84" stroke="#fff" stroke-opacity=".5" stroke-width="1"/>
+      <!-- antenna -->
+      <path d="M0 -70v-40" stroke="url(#truss)" stroke-width="6"/>
+      <circle cy="-115" r="9" fill="#ff5b5b" class="blink" filter="url(#vialGlow)"/>
+      <!-- main module -->
       <rect x="-110" y="-72" width="220" height="144" rx="40" fill="url(#hull)"/>
-      <text x="0" y="64" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="18" fill="#3a4561">AUGUSTAS-4</text>
-      <circle r="48" fill="#2c3445"/>
-      <!-- LAB, seen through the porthole -->
+      <rect x="-110" y="-72" width="220" height="144" rx="40" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="2"/>
+      <path d="M-95 -60q95 -14 190 0" fill="none" stroke="#fff" stroke-width="3" opacity=".6"/>
+      <g fill="#2a3240" opacity=".55"><rect x="-96" y="-30" width="4" height="60" rx="2"/><rect x="92" y="-30" width="4" height="60" rx="2"/></g>
+      <text x="0" y="64" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="18" fill="#2a3346" opacity=".85">AUGUSTAS-4</text>
+      <!-- porthole shadow + lab -->
+      <circle r="50" fill="#000" opacity=".35" filter="url(#blur6)"/>
+      <circle r="48" fill="#0b1c25"/>
       <g clip-path="url(#portholeClip)">
         <g id="lab" transform="scale(0.0714286)">
           <rect x="-600" y="-600" width="1200" height="1200" fill="url(#wall)"/>
-          <!-- wall details -->
-          <rect x="-520" y="-430" width="1040" height="18" fill="#1d5a70"/>
-          <g fill="#0b2b38" stroke="#2f7b93" stroke-width="5">
-            <rect x="230" y="-330" width="260" height="170" rx="14"/>
+          <!-- wall panels -->
+          <g stroke="#0a2a36" stroke-width="4" fill="none" opacity=".7">
+            <path d="M-600 -300H600M-600 -60H600M-300 -600V150M300 -600V150"/>
           </g>
-          <path d="M250 -240h50l20 -40 25 80 25 -60 15 20h85" fill="none" stroke="#7dff6a" stroke-width="6"/>
+          <rect x="-520" y="-430" width="1040" height="18" fill="#2a7a90"/>
+          <rect x="-520" y="-430" width="1040" height="5" fill="#9fe8ff" opacity=".8"/>
+          <!-- ceiling light cone -->
+          <rect x="-600" y="-600" width="1200" height="800" fill="url(#spot)"/>
+          <!-- monitor -->
+          <rect x="222" y="-338" width="276" height="186" rx="18" fill="#0a1c25"/>
+          <rect x="230" y="-330" width="260" height="170" rx="14" fill="url(#screenG)" stroke="#2f7b93" stroke-width="3"/>
+          <path d="M250 -240h50l20 -40 25 80 25 -60 15 20h85" fill="none" stroke="#7dff6a" stroke-width="6" filter="url(#vialGlow)"/>
           <text x="360" y="-185" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="36" fill="#ffd23f">4</text>
+          <rect x="230" y="-330" width="260" height="60" rx="14" fill="#fff" opacity=".06"/>
           <!-- shelf with bottles -->
-          <rect x="-500" y="-210" width="290" height="12" fill="#2f7b93"/>
-          <rect x="-470" y="-270" width="34" height="60" rx="8" fill="#ff6b9a"/>
-          <rect x="-420" y="-285" width="30" height="75" rx="8" fill="#6fd3ff"/>
-          <rect x="-375" y="-260" width="40" height="50" rx="10" fill="#ffd23f"/>
-          <rect x="-320" y="-280" width="28" height="70" rx="8" fill="#b28cff"/>
+          <rect x="-500" y="-210" width="290" height="12" fill="url(#steel)"/>
+          <rect x="-500" y="-198" width="290" height="14" fill="#000" opacity=".35" filter="url(#blur6)"/>
+          <g>
+            <rect x="-470" y="-270" width="34" height="60" rx="8" fill="#ff6b9a"/><rect x="-470" y="-270" width="34" height="60" rx="8" fill="url(#glassH)"/>
+            <rect x="-420" y="-285" width="30" height="75" rx="8" fill="#6fd3ff"/><rect x="-420" y="-285" width="30" height="75" rx="8" fill="url(#glassH)"/>
+            <rect x="-375" y="-260" width="40" height="50" rx="10" fill="#ffd23f"/><rect x="-375" y="-260" width="40" height="50" rx="10" fill="url(#glassH)"/>
+            <rect x="-320" y="-280" width="28" height="70" rx="8" fill="#b28cff"/><rect x="-320" y="-280" width="28" height="70" rx="8" fill="url(#glassH)"/>
+          </g>
           <!-- floor -->
-          <rect x="-600" y="150" width="1200" height="450" fill="#0d2c38"/>
+          <rect x="-600" y="150" width="1200" height="450" fill="url(#floor)"/>
           <path d="M-600 150H600" stroke="#ffd23f" stroke-width="14" stroke-dasharray="40 40"/>
+          <path d="M-600 150H600" stroke="#fff" stroke-width="2" opacity=".35"/>
+          <!-- floor reflection of the kid -->
+          <g transform="translate(0 330) scale(1 -1) translate(0 -30)" opacity=".18" filter="url(#blur6)">
+            <use href="#kidBody"/>
+          </g>
           <!-- bench with flasks -->
-          <rect x="-470" y="30" width="250" height="18" rx="6" fill="#d9e3ea"/>
-          <rect x="-455" y="48" width="18" height="102" fill="#9fb0bd"/>
-          <rect x="-253" y="48" width="18" height="102" fill="#9fb0bd"/>
-          <path d="M-430 30v-40h-12v-8h44v8h-12v40z" fill="#9de9ff" opacity=".9"/>
-          <path d="M-360 30l26 -60v-22h-12v-8h44v8h-12v22l26 60z" fill="#ff8fb8" opacity=".9"/>
-          <circle cx="-270" cy="10" r="20" fill="#b28cff" opacity=".9"/>
-          <rect x="-277" y="-30" width="14" height="22" fill="#b28cff" opacity=".9"/>
+          <rect x="-470" y="30" width="250" height="18" rx="6" fill="url(#steel)"/>
+          <rect x="-455" y="48" width="18" height="102" fill="url(#tank)"/>
+          <rect x="-253" y="48" width="18" height="102" fill="url(#tank)"/>
+          <ellipse cx="-345" cy="150" rx="140" ry="10" fill="#000" opacity=".4" filter="url(#blur6)"/>
+          <g>
+            <path d="M-430 30v-40h-12v-8h44v8h-12v40z" fill="#9de9ff" opacity=".85"/>
+            <path d="M-430 30v-40h-12v-8h44v8h-12v40z" fill="url(#glassH)"/>
+            <path d="M-360 30l26 -60v-22h-12v-8h44v8h-12v22l26 60z" fill="#ff8fb8" opacity=".85"/>
+            <path d="M-360 30l26 -60v-22h-12v-8h44v8h-12v22l26 60z" fill="url(#glassH)"/>
+            <circle cx="-270" cy="10" r="20" fill="#b28cff" opacity=".9"/>
+            <circle cx="-270" cy="10" r="20" fill="url(#visorGlass)"/>
+            <rect x="-277" y="-30" width="14" height="22" fill="#b28cff" opacity=".9"/>
+          </g>
           <!-- right console -->
           <rect x="250" y="20" width="220" height="130" rx="12" fill="#1b4a5c"/>
-          <circle cx="300" cy="65" r="16" fill="#ff5b5b" class="blink"/>
-          <circle cx="350" cy="65" r="16" fill="#7dff6a"/>
-          <circle cx="400" cy="65" r="16" fill="#ffd23f"/>
+          <rect x="250" y="20" width="220" height="130" rx="12" fill="url(#suitTop)" opacity=".5"/>
+          <circle cx="300" cy="65" r="16" fill="#ff5b5b" class="blink" filter="url(#vialGlow)"/>
+          <circle cx="350" cy="65" r="16" fill="#7dff6a" filter="url(#vialGlow)"/>
+          <circle cx="400" cy="65" r="16" fill="#ffd23f" filter="url(#vialGlow)"/>
           <rect x="285" y="105" width="150" height="16" rx="8" fill="#0b2b38"/>
+          <rect x="285" y="105" width="90" height="16" rx="8" fill="#7dff6a" opacity=".6"/>
+          <!-- vignette -->
+          <rect x="-600" y="-600" width="1200" height="1200" fill="url(#vignette)"/>
 
           <rect id="labFrame" x="-200" y="-215" width="400" height="420" fill="none"/>
 
           <!-- AUGUSTAS in his hazmat suit -->
           <g id="kid" transform="translate(0 -30)">
-            <rect x="-128" y="-70" width="40" height="150" rx="16" fill="#8a96a8"/>
-            <rect x="-62" y="120" width="52" height="60" rx="14" fill="#e0a800"/>
-            <rect x="10" y="120" width="52" height="60" rx="14" fill="#e0a800"/>
-            <rect x="-68" y="168" width="64" height="28" rx="12" fill="#2b2b33"/>
-            <rect x="4" y="168" width="64" height="28" rx="12" fill="#2b2b33"/>
-            <rect x="-100" y="-170" width="200" height="310" rx="96" fill="url(#suitShade)"/>
-            <!-- left arm resting -->
-            <rect x="-128" y="-10" width="42" height="120" rx="20" fill="#ffd23f"/>
-            <circle cx="-107" cy="114" r="20" fill="#2b2b33"/>
-            <!-- chest patch -->
-            <rect x="-38" y="40" width="76" height="44" rx="10" fill="#fff"/>
-            <text x="0" y="74" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="32" fill="#2b2b33">A·4</text>
-            <!-- visor with photo -->
-            <ellipse cx="0" cy="-80" rx="62" ry="56" fill="#ffd9b8"/>
+            <ellipse cy="196" rx="120" ry="16" fill="#000" opacity=".5" filter="url(#blur6)"/>
+            <g id="kidBody">
+              <!-- tank -->
+              <rect x="-128" y="-70" width="40" height="150" rx="16" fill="url(#tank)"/>
+              <rect x="-124" y="-62" width="8" height="134" rx="4" fill="#fff" opacity=".25"/>
+              <!-- legs -->
+              <rect x="-62" y="120" width="52" height="60" rx="14" fill="url(#limb)"/>
+              <rect x="10" y="120" width="52" height="60" rx="14" fill="url(#limb)"/>
+              <rect x="-68" y="168" width="64" height="28" rx="12" fill="url(#rubber)"/>
+              <rect x="4" y="168" width="64" height="28" rx="12" fill="url(#rubber)"/>
+              <!-- body -->
+              <g filter="url(#fabric)">
+                <rect x="-100" y="-170" width="200" height="310" rx="96" fill="url(#suitBody)"/>
+              </g>
+              <rect x="-100" y="-170" width="200" height="310" rx="96" fill="url(#suitTop)"/>
+              <g clip-path="url(#bodyClip)" fill="none" stroke="#6b4a00" stroke-opacity=".35" stroke-width="2">
+                <path d="M-100 -20q100 28 200 0M-100 95q100 28 200 0"/>
+                <path d="M-100 -14q100 28 200 0M-100 101q100 28 200 0" stroke="#fff" stroke-opacity=".25"/>
+                <path d="M0 -10V120" stroke-dasharray="4 6"/>
+              </g>
+              <!-- zipper -->
+              <rect x="-3" y="-10" width="6" height="130" rx="3" fill="#8a6300" opacity=".6"/>
+              <!-- left arm resting -->
+              <rect x="-128" y="-10" width="42" height="120" rx="20" fill="url(#limb)"/>
+              <rect x="-128" y="-10" width="42" height="120" rx="20" fill="url(#suitTop)"/>
+              <circle cx="-107" cy="114" r="20" fill="url(#rubber)"/>
+              <!-- chest patch -->
+              <rect x="-38" y="40" width="76" height="44" rx="10" fill="#f7f7f2"/>
+              <rect x="-38" y="40" width="76" height="44" rx="10" fill="url(#suitTop)" opacity=".5"/>
+              <text x="0" y="74" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="32" fill="#2b2b33">A·4</text>
+            </g>
+            <!-- visor: inner shadow, photo, glass -->
+            <ellipse cx="0" cy="-80" rx="62" ry="56" fill="#1a1d24"/>
             <g id="face" clip-path="url(#visorClip)">
-              <!-- placeholder face, hidden by the photo once it loads -->
               <g id="cartoonFace">
                 <ellipse cx="0" cy="-80" rx="62" ry="56" fill="#ffd9b8"/>
                 <path d="M-62 -100c10-40 40-40 62-30 22-10 52-10 62 30v-40h-124z" fill="#8a5a2b"/>
                 <circle cx="-20" cy="-82" r="7" fill="#2b2b33"/>
                 <circle cx="20" cy="-82" r="7" fill="#2b2b33"/>
                 <path d="M-18 -56q18 16 36 0" fill="none" stroke="#2b2b33" stroke-width="5" stroke-linecap="round"/>
-                <circle cx="-34" cy="-62" r="8" fill="#ff9e9e" opacity=".6"/>
-                <circle cx="34" cy="-62" r="8" fill="#ff9e9e" opacity=".6"/>
               </g>
               <image id="photo" href="augustas.jpg" x="-62" y="-136" width="124" height="112" preserveAspectRatio="xMidYMid slice"/>
-              <path d="M-48 -110q20 -22 50 -20" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".45"/>
+              <!-- inner shade from the helmet rim -->
+              <ellipse cx="0" cy="-80" rx="62" ry="56" fill="none" stroke="#000" stroke-width="18" opacity=".55" filter="url(#innerShade)"/>
+              <!-- glass -->
+              <ellipse cx="0" cy="-80" rx="62" ry="56" fill="url(#visorGlass)"/>
+              <path d="M-50 -112q22 -26 54 -22" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".55"/>
+              <path d="M-54 -98q6 -10 14 -16" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".45"/>
+              <!-- green reflection from the vial -->
+              <ellipse cx="44" cy="-60" rx="14" ry="26" fill="#7dff6a" opacity=".12"/>
             </g>
-            <ellipse id="visor" cx="0" cy="-80" rx="62" ry="56" fill="none" stroke="#2b2b33" stroke-width="11"/>
+            <ellipse id="visor" cx="0" cy="-80" rx="62" ry="56" fill="none" stroke="url(#visorRing)" stroke-width="11"/>
+            <ellipse cx="0" cy="-80" rx="67" ry="61" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="2"/>
+            <ellipse cx="0" cy="-80" rx="57" ry="51" fill="none" stroke="#fff" stroke-opacity=".25" stroke-width="1.5"/>
             <!-- right arm raised, holding the vial -->
-            <path d="M80 0q60 -20 70 -80" fill="none" stroke="#ffd23f" stroke-width="40" stroke-linecap="round"/>
-            <circle cx="160" cy="-120" r="70" fill="url(#glowGrad)" class="halo"/>
-            <rect x="148" y="-170" width="24" height="78" rx="12" fill="#e9fbff" opacity=".85"/>
-            <rect x="151" y="-135" width="18" height="40" rx="9" fill="#7dff6a"/>
+            <path d="M80 0q60 -20 70 -80" fill="none" stroke="#8a6000" stroke-width="44" stroke-linecap="round"/>
+            <path d="M80 0q60 -20 70 -80" fill="none" stroke="url(#limbV)" stroke-width="40" stroke-linecap="round"/>
+            <path d="M78 -6q50 -18 60 -70" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".25"/>
+            <circle cx="160" cy="-120" r="80" fill="url(#glowGrad)" class="halo"/>
+            <g filter="url(#vialGlow)">
+              <rect x="151" y="-135" width="18" height="40" rx="9" fill="url(#liquid)"/>
+            </g>
+            <rect x="148" y="-170" width="24" height="78" rx="12" fill="#e9fbff" opacity=".35"/>
+            <rect x="148" y="-170" width="24" height="78" rx="12" fill="url(#glassH)"/>
+            <rect x="151" y="-166" width="4" height="60" rx="2" fill="#fff" opacity=".7"/>
             <rect x="144" y="-176" width="32" height="12" rx="4" fill="#ff6b9a"/>
-            <g fill="#d6ffcb">
+            <rect x="144" y="-176" width="32" height="5" rx="2" fill="#fff" opacity=".4"/>
+            <g fill="#e8ffd9">
               <circle class="bubble" cx="160" cy="-108" r="4"/>
               <circle class="bubble" cx="156" cy="-112" r="3"/>
               <circle class="bubble" cx="164" cy="-110" r="3.5"/>
             </g>
-            <circle cx="152" cy="-86" r="22" fill="#2b2b33"/>
+            <circle cx="152" cy="-86" r="22" fill="url(#rubber)"/>
+            <path d="M140 -96q6 -10 18 -10" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".3"/>
           </g>
         </g>
       </g>
-      <circle r="44" fill="none" stroke="#5b6478" stroke-width="10"/>
-      <circle r="44" fill="none" stroke="#dfe5ef" stroke-width="3"/>
+      <!-- porthole ring -->
+      <circle r="44" fill="none" stroke="url(#ring)" stroke-width="10"/>
+      <circle r="49" fill="none" stroke="#000" stroke-opacity=".4" stroke-width="1.5"/>
+      <circle r="39" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.5"/>
+      <g fill="#3b4452"><circle cx="0" cy="-44" r="2.5"/><circle cx="0" cy="44" r="2.5"/><circle cx="-44" cy="0" r="2.5"/><circle cx="44" cy="0" r="2.5"/></g>
+      <!-- glass sheen over the porthole -->
+      <circle r="40" fill="url(#visorGlass)" opacity=".7"/>
     </g>
   </g>
 </svg>
-
 <div id="caption" class="ui" aria-live="polite"></div>
 <button id="skip" class="ui" type="button">Praleisti ›</button>
 
@@ -341,7 +571,9 @@
     const add = (cx, cy, r, tw) => {
       const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
       c.setAttribute("cx", cx.toFixed(2)); c.setAttribute("cy", cy.toFixed(2));
-      c.setAttribute("r", r.toFixed(2)); c.setAttribute("fill", "#fff");
+      c.setAttribute("r", r.toFixed(2));
+      c.setAttribute("fill", ["#fff", "#fff", "#fff", "#cfe0ff", "#ffe9c9"][Math.floor(rnd() * 5)]);
+      c.setAttribute("opacity", (0.45 + rnd() * 0.55).toFixed(2));
       if (tw) { c.setAttribute("class", "tw"); c.style.animationDelay = (rnd() * 2.4).toFixed(2) + "s"; }
       g.appendChild(c);
     };
